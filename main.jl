@@ -11,3 +11,8 @@ include("solver.jl")
 s = Settings(); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
 
 # run solver for various Settings
+
+s.epsilon = 1.0;
+s.Tend = 5.0;
+solver = DLRSolver(s);
+# @time u1 = So
