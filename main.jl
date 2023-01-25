@@ -14,5 +14,5 @@ s = Settings(); # Give the number of discretisation points for spatial domain an
 
 s.epsilon = 1.0;
 s.Tend = 5.0;
-solver = DLRSolver(s);
+solver = solver(s);
 # @time u1 = So

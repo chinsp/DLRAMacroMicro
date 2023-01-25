@@ -42,8 +42,8 @@ mutable struct Settings
     BCType::String;
 
     ## Physical parameters
-    sigmaS::Float64
-    sigmaA::Float64
+    sigmaS::Float64;
+    sigmaA::Float64;
     
     ## Low-rank approximation parameters
     r::Int; # rank of approximation
