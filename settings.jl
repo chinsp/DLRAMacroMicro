@@ -67,7 +67,7 @@ mutable struct Settings
         problem = "LineSource";
 
         x = collect(range(a,stop = b,length = Nx));
-        dx = x[1] - x[0];
+        dx = x[2] - x[1];
         xMid = x .+ dx/2;
         xMid = xMid[1:(end-1)];
 
@@ -97,7 +97,7 @@ mutable struct Settings
 
         epsilon = 1.0;
 
-        new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r,);
+        new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r);
     end
 end
 
