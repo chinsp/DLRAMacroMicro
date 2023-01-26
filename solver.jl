@@ -124,7 +124,7 @@ struct solver
     vm = obj.vm;
 
     rho0,g0 = setupIC(obj);
-
+    # println(rho0)
     ## pre=allocating memory for solution of macro and micro equation
     g1 = zeros(size(g0));
     rho1 = zeros(size(rho0));
@@ -137,8 +137,10 @@ struct solver
     println("Running solver for the full problem")
     
     for k = 1:Nt
+        # println(rho0)
         fac = epsilon^2/(epsilon^2 + obj.sigmaS*dt);
-        g1 =  g0 + dt*(-(Dp * g0 * vp + Dm * g0 * vm)*(Iden - w * Transpose(unitvec))/epsilon -(Dc * rho0 * Transpose(unitvec) * v)/epsilon^2);
+        g1 =  g0 + dt*(-(Dp * g0 * vp + Dm * g0 * vm)*(Iden - w * Transpose(unitvec))/epsilon) - dt * ((Dc * rho0 * Transpose(unitvec) * v)/epsilon^2);
+        
         g1 = fac * g1;
         
         rho1 = rho0 - dt/2 * Dcx * g1 * v * w;
