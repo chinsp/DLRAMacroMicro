@@ -40,8 +40,10 @@ struct solver
         Nv = settings.Nv;
 
         quad = Quadrature(Nv,"Gauss");
-        w = quad.w;
-        v = Diagonal(quad.v);
+
+        w = quad.w[end:-1:1];
+        v = Diagonal(quad.v[end:-1:1]);
+        
         vp = Diagonal(zeros(Float64,Nv));
         vm = Diagonal(zeros(Float64,Nv));
         for q = 1:Nv
