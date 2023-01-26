@@ -16,3 +16,10 @@ s.epsilon = 1.0;
 s.Tend = 5.0;
 Solver = solver(s);
 @time t, rho1, g1 = solveFullProblem(Solver);
+
+using PyPlot
+
+
+fig, ax = subplots(figsize=(15, 12), dpi=100)
+ax.plot(rho1)
+fig.canvas.draw()
