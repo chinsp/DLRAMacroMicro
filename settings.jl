@@ -51,16 +51,16 @@ mutable struct Settings
     function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic")
         # Setup spatial grid
         NxC = Nx - 1;
-        a = -5; # Starting point for the spatial interval
-        b = 5; # End point for the spatial interval
+        a = -1; # Starting point for the spatial interval
+        b = 1; # End point for the spatial interval
 
         # Setup temporal discretisation
         Tend = 5;
-        cfl1 = 0.75; # CFL condition parabolic
-        cfl2 = 1.0; # CFL condition hyperbolic
-        cflType = "parabolic"; # or "parabolic", "mixed"
+        cfl1 = 0.025; # CFL condition parabolic
+        cfl2 = 0.025; # CFL condition hyperbolic
+        # cflType = "parabolic"; # or "parabolic", "mixed"
 
-        epsilon = 10^-6;
+        # epsilon = 10^-6;
 
         # Initial conditions
         ICType = "LS" ;
@@ -101,7 +101,7 @@ mutable struct Settings
     end
 end
 
-function IC(obj::Settings,x)
+function ICrho(obj::Settings,x)
     y = zeros(size(x));
     if obj.ICType == "LS"
         s1 = 0.03;
@@ -113,6 +113,16 @@ function IC(obj::Settings,x)
         end
     elseif obj.ICType == "ManufacturedSolution"
         println("Not coded yet")
+    end
+    return y;
+end
+
+function ICg(obj::Settings,x)
+    y = zeros(length(x),obj.Nv);
+    if obj.ICType == "LS"
+        y = y;
+    elseif obj.ICType == "ManufacturedSolution"
+        println("Not coded yet");
     end
     return y;
 end
