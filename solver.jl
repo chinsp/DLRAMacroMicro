@@ -61,22 +61,22 @@ struct solver
         # Currently running a second order upwind scheme
         
         for i = 1:nxC
-            Dp[i,i] = 3/dx;
+            Dp[i,i] = 3/(2*dx);
             if i-1 > 0
-                Dp[i,i-1] = -4/dx;
+                Dp[i,i-1] = -4/(2*dx);
             end
             if i-2 > 0
-                Dp[i,i-2] = 1/2/dx;
+                Dp[i,i-2] = 1/(2*dx);
             end
         end
 
         for i = 1:nxC
-            Dm[i,i] = -3/dx;
+            Dm[i,i] = -3/(2*dx);
             if i+1 < nxC+1
-                Dm[i,i+1] = 4/dx;
+                Dm[i,i+1] = 4/(2*dx);
             end
             if i+2 < nxC+1
-                Dm[i,i+2] = -1/2/dx;
+                Dm[i,i+2] = -1/(2*dx);
             end
         end
 
@@ -138,11 +138,11 @@ struct solver
     for k = 1:Nt
         # println(rho0)
         fac = epsilon^2/(epsilon^2 + obj.sigmaS*dt);
-        g1 =  g0 + dt*(-(Dp * g0 * vp + Dm * g0 * vm)*(Iden - 1/2 * w * Transpose(unitvec))/epsilon - (Dc * rho0 * Transpose(unitvec) * v)/(epsilon^2));
+        g1 =  g0 + dt*(-(Dp * g0 * vp + Dm * g0 * vm)*(Iden - 0.5 * w * Transpose(unitvec))/epsilon - (Dc * rho0 * Transpose(unitvec) * v)/(epsilon^2));
         
         g1 =  fac * g1;
         
-        rho1 = rho0 - dt/2 * Dcx * g1 * v * w;
+        rho1 = rho0 + dt *(-0.5 * Dcx * g1 * v * w) ;
 
         g0 = g1;
         rho0 = rho1;
