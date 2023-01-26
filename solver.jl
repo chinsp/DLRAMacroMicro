@@ -59,23 +59,23 @@ struct solver
         Dcx = zeros(Float64,nx,nxC);
 
         for i = 1:nxC
-            Dp[i,i] = 3/2/dx;
+            Dp[i,i] = 1/dx;
             if i-1 > 0
-                Dp[i,i-1] = -4/2/dx;
+                Dp[i,i-1] = -1/dx;
             end
-            if i-2 > 0
-                Dp[i,i-2] = 1/2/dx;
-            end
+            # if i-2 > 0
+            #     Dp[i,i-2] = 1/2/dx;
+            # end
         end
 
         for i = 1:nxC
-            Dm[i,i] = -3/2/dx;
+            Dm[i,i] = -1/dx;
             if i+1 < nxC+1
-                Dm[i,i+1] = 4/2/dx;
+                Dm[i,i+1] = 1/dx;
             end
-            if i+2 < nxC+1
-                Dm[i,i+2] = -1/2/dx;
-            end
+            # if i+2 < nxC+1
+            #     Dm[i,i+2] = -1/2/dx;
+            # end
         end
 
         for i = 1:nxC
@@ -92,26 +92,21 @@ struct solver
     end
  end
 
- ## ToDo
-
  function setupIC(obj::solver)
     g0 = zeros(obj.settings.NxC,obj.settings.Nv);
     rho0 = zeros(obj.settings.Nx);
-    rho0 = IC(obj.settings,obj.x);
-
+    rho0 = ICrho(obj.settings,obj.x);
+    g0 = ICg(obj.settings,obj.xMid);
     return rho0,g0;
  end
 
- ## ToDo
 
  function solveFullProblem(obj::solver)
-    ## ToDo
     t = 0.0;
     dt = obj.settings.dt;
     Tend = obj.settings.Tend;
     Nx = obj.settings.Nx;
     NxC = obj.settings.NxC;
-    r = obj.settings.r;
     Nv = obj.settings.Nv;
     epsilon = obj.settings.epsilon;
 
@@ -141,9 +136,9 @@ struct solver
     for k = 1:Nt
         # println(rho0)
         fac = epsilon^2/(epsilon^2 + obj.sigmaS*dt);
-        g1 =  g0 + dt*(-(Dp * g0 * vp + Dm * g0 * vm)*(Iden - w * Transpose(unitvec))/epsilon) - dt * ((Dc * rho0 * Transpose(unitvec) * v)/epsilon^2);
+        g1 =  g0 + dt*(-(Dp * g0 * vp + Dm * g0 * vm)*(Iden - 1/2 * w * Transpose(unitvec))/epsilon - (Dc * rho0 * Transpose(unitvec) * v)/(epsilon^2));
         
-        g1 = fac * g1;
+        g1 =  fac * g1;
         
         rho1 = rho0 - dt/2 * Dcx * g1 * v * w;
 
