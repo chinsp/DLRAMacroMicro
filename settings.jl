@@ -108,7 +108,7 @@ function IC(obj::Settings,x)
         s2 = s1^2;
         floor = 1e-4;
         x0 = 0.0;
-        for j = 1:eachindex(y);
+        for j in eachindex(y)
             y[j] = max(floor,1.0/(sqrt(2*pi)*s1) *exp(-((x[j]-x0)*(x[j]-x0))/2.0/s2))
         end
     elseif obj.ICType == "ManufacturedSolution"
