@@ -89,3 +89,15 @@ struct solver
         new(x,xMid,settings,w,v,vp,vm,Dp,Dm,Dc,Dcx,settings.sigmaA,settings.sigmaS);
     end
  end
+
+ ## ToDo
+
+ function setupIC(obj::solver)
+    
+ end
+
+ ## ToDo
+
+ function solveFullProblem(obj::solver)
+    ## ToDo
+ end
