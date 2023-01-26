@@ -57,7 +57,9 @@ struct solver
         Dm = zeros(Float64,nxC,nxC);
         Dc = zeros(Float64,nxC,nx);
         Dcx = zeros(Float64,nx,nxC);
-
+        
+        # Currently running a first order upwind scheme
+        
         for i = 1:nxC
             Dp[i,i] = 1/dx;
             if i-1 > 0
