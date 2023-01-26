@@ -10,11 +10,11 @@ include("solver.jl")
 
 using PyPlot
 
-s = Settings(1001,800,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
+s = Settings(1001,800,1.0,"mixed"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
 
 # run solver for various Settings
 
-s.Tend = 1.0;
+s.Tend = 0.05;
 # s.dt = s.dt/10
 Solver = solver(s);
 @time t, rho1, g1 = solveFullProblem(Solver);
