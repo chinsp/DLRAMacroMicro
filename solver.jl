@@ -137,7 +137,7 @@ struct solver
     for k = 1:Nt
         global g1;
         fac = epsilon^2/(epsilon^2 + obj.sigmaS*dt);
-        g1 =  g0 + dt*(-(Dp * g0 * vp + Dm * g0 * vm)(Iden - w * Transpose(unitvec))/epsilon -(Dc * rho0 * Transpose(unitvec) * v)/epsilon^2);
+        g1 =  g0 + dt*(-(Dp * g0 * vp + Dm * g0 * vm)*(Iden - w * Transpose(unitvec))/epsilon -(Dc * rho0 * Transpose(unitvec) * v)/epsilon^2);
         g1 = fac * g1;
         
         rho1 = rho0 - dt/2 * Dcx * g1 * v * w;
