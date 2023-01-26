@@ -48,7 +48,7 @@ mutable struct Settings
     ## Low-rank approximation parameters
     r::Int; # rank of approximation
 
-    function Settings(Nx::Int=1001,Nv::Int=500)
+    function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic")
         # Setup spatial grid
         NxC = Nx - 1;
         a = -5; # Starting point for the spatial interval
@@ -56,11 +56,11 @@ mutable struct Settings
 
         # Setup temporal discretisation
         Tend = 5;
-        cfl1 = 1.0; # CFL condition parabolic
+        cfl1 = 0.75; # CFL condition parabolic
         cfl2 = 1.0; # CFL condition hyperbolic
-        cflType = "mixed"; # or "parabolic", "mixed"
+        cflType = "parabolic"; # or "parabolic", "mixed"
 
-        epsilon = 0.5;
+        epsilon = 10^-6;
 
         # Initial conditions
         ICType = "LS" ;
