@@ -58,26 +58,26 @@ struct solver
         Dc = zeros(Float64,nxC,nx);
         Dcx = zeros(Float64,nx,nxC);
         
-        # Currently running a first order upwind scheme
+        # Currently running a second order upwind scheme
         
         for i = 1:nxC
-            Dp[i,i] = 1/dx;
+            Dp[i,i] = 3/dx;
             if i-1 > 0
-                Dp[i,i-1] = -1/dx;
+                Dp[i,i-1] = -4/dx;
             end
-            # if i-2 > 0
-            #     Dp[i,i-2] = 1/2/dx;
-            # end
+            if i-2 > 0
+                Dp[i,i-2] = 1/2/dx;
+            end
         end
 
         for i = 1:nxC
-            Dm[i,i] = -1/dx;
+            Dm[i,i] = -3/dx;
             if i+1 < nxC+1
-                Dm[i,i+1] = 1/dx;
+                Dm[i,i+1] = 4/dx;
             end
-            # if i+2 < nxC+1
-            #     Dm[i,i+2] = -1/2/dx;
-            # end
+            if i+2 < nxC+1
+                Dm[i,i+2] = -1/2/dx;
+            end
         end
 
         for i = 1:nxC
