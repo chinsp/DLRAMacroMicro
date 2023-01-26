@@ -72,7 +72,7 @@ mutable struct Settings
         xMid = xMid[1:(end-1)];
 
         println("Number of points for spatial discretisation of macro = ",Nx);
-        println("Number of points for spatial discretisation of micro = ",size(xMid));
+        println("Number of points for spatial discretisation of micro = ",NxC);
 
         # Setting up the time increment
         if cflType == "parabolic"
