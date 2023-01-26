@@ -8,16 +8,16 @@
 include("settings.jl")
 include("solver.jl")
 
-s = Settings(1001,800); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
+using PyPlot
+
+s = Settings(1001,800,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
 
 # run solver for various Settings
 
 s.Tend = 1.0;
-# s.dt = s.dt/2
+# s.dt = s.dt/10
 Solver = solver(s);
 @time t, rho1, g1 = solveFullProblem(Solver);
-
-using PyPlot
 
 
 fig, ax = subplots(figsize=(15, 12), dpi=100)
