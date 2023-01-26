@@ -51,14 +51,16 @@ mutable struct Settings
     function Settings(Nx::Int=1001,Nv::Int=500)
         # Setup spatial grid
         NxC = Nx - 1;
-        a = 0; # Starting point for the spatial interval
-        b = 2*pi; # End point for the spatial interval
+        a = -5; # Starting point for the spatial interval
+        b = 5; # End point for the spatial interval
 
         # Setup temporal discretisation
         Tend = 5;
-        cfl1 = 0.0; # CFL condition parabolic
+        cfl1 = 1.0; # CFL condition parabolic
         cfl2 = 1.0; # CFL condition hyperbolic
-        cflType = "hyperbolic"; # or "parabolic", "mixed"
+        cflType = "mixed"; # or "parabolic", "mixed"
+
+        epsilon = 0.5;
 
         # Initial conditions
         ICType = "LS" ;
@@ -94,8 +96,6 @@ mutable struct Settings
         BCType = "exact"
 
         r = 30;
-
-        epsilon = 1.0;
 
         new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r);
     end
