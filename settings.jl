@@ -42,7 +42,7 @@ mutable struct Settings
     BCType::String;
 
     ## Physical parameters
-    sigmaS::Float64;
+    sigmaS::Float64; ## Try to change this to get a non-constant value for the scattering coefficients
     sigmaA::Float64;
     
     ## Low-rank approximation parameters
@@ -101,7 +101,7 @@ mutable struct Settings
     end
 end
 
-function IC(obg::Settings,x)
+function IC(obj::Settings,x)
     y = zeros(size(x));
     if obj.ICType == "LS"
         s1 = 0.03;
@@ -113,5 +113,6 @@ function IC(obg::Settings,x)
         end
     elseif obj.ICType == "ManufacturedSolution"
         println("Not coded yet")
-            
+    end
+    return y;
 end
