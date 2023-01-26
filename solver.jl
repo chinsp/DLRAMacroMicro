@@ -93,11 +93,51 @@ struct solver
  ## ToDo
 
  function setupIC(obj::solver)
-    
+    g0 = zeros(obj.settings.NxC,obj.settings.Nv);
+    rho0 = zeros(obj.settings.Nx);
+    rho0 = IC(obj.settings,obj.x);
+
+    return rho0,g0;
  end
 
  ## ToDo
 
  function solveFullProblem(obj::solver)
     ## ToDo
+    t = 0.0;
+    dt = obj.settings.dt;
+    Tend = obj.settings.Tend;
+    Nx = obj.settings.Nx;
+    NxC = obj.settings.NxC;
+    r = obj.settings.r;
+    Nv = obj.settings.Nv;
+    epsilon = obj.settings.epsilon;
+
+    Dp = obj.Dp;
+    Dm = obj.Dm;
+    Dc = obj.Dc;
+    Dcx = obj.Dcx;
+
+    w = obj.w;
+    v = obj.v;
+    vp = obj.vp;
+    vm = obj.vm;
+
+    rho0,g0 = setupIC(obj);
+
+    ## pre=allocating memory for solution of macro and micro equation
+    g1 = zeros(size(g0));
+    rho1 = zeros(size(rho0));
+
+    Nt = round(Tend/dt);
+    
+    unitvec = ones(Nv);
+    Iden = I(Nv);
+
+    for k = 1:Nt
+        global g1;
+        fac = epsilon^2/(epsilon^2 + obj.sigmaS*dt);
+        g1 =  g0 + dt*(-(Dp * g0 * vp + Dm * g0 * vm)(Iden - w * Transpose(unitvec)))
+    
+
  end
