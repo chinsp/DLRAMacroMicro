@@ -15,4 +15,4 @@ s = Settings(); # Give the number of discretisation points for spatial domain an
 s.epsilon = 1.0;
 s.Tend = 5.0;
 Solver = solver(s);
-# @time u1 = So
+@time t, rho1, g1 = solveFullProblem(Solver);

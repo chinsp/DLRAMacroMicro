@@ -144,6 +144,7 @@ struct solver
 
         g0 = g1;
         rho0 = rho1;
+        t = t + dt;
     end
-    return rho0, g0;
+    return t, rho1, g1;
  end
