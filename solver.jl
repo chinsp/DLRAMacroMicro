@@ -33,8 +33,8 @@ struct solver
         x = settings.x;
         xMid = settings.xMid;
 
-        nx = size(x);
-        nxC = size(xMid);
+        nx = settings.Nx;
+        nxC = settings.NxC;
 
         # Setting up the weights vector
         Nv = settings.Nv;
@@ -51,10 +51,10 @@ struct solver
 
         dx = settings.dx;
         
-        Dp = zeros(Float64,(nxC,nxC));
-        Dm = zeros(Float64,(nxC,nxC));
-        Dc = zeros(Float64,(nxC,nx));
-        Dcx = zeros(Float64,(nx,nxC));
+        Dp = zeros(Float64,nxC,nxC);
+        Dm = zeros(Float64,nxC,nxC);
+        Dc = zeros(Float64,nxC,nx);
+        Dcx = zeros(Float64,nx,nxC);
 
         for i = 1:nxC
             Dp[i,i] = 3/2/dx;
