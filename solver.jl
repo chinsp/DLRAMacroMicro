@@ -2,6 +2,7 @@ __precompile__
 include("quadrature.jl")
 
 using ProgressMeter
+using ProgressBars
 using LinearAlgebra
 
 struct solver
@@ -135,14 +136,15 @@ struct solver
 
     println("Running solver for the full problem")
     
-    for k = 1:Nt
-        # println(rho0)
+    for k = ProgressBar(1:Nt)
         fac = epsilon^2/(epsilon^2 + obj.sigmaS*dt);
-        g1 =  g0 + dt*(-(Dp * g0 * vp + Dm * g0 * vm)*(Iden - 0.5 * w * Transpose(unitvec))/epsilon - (Dc * rho0 * Transpose(unitvec) * v)/(epsilon^2));
+        RHS = (Dc * rho0 * Transpose(unitvec) * v)/(epsilon^2);
+        RHS =  RHS + (Dp * g0 * vp + Dm * g0 * vm)*(Iden - 0.5 * w * Transpose(unitvec))/epsilon;
+        g1 =  g0 - dt*RHS;
         
         g1 =  fac * g1;
         
-        rho1 = rho0 + dt *(-0.5 * Dcx * g1 * v * w) ;
+        rho1 = rho0 - dt *(0.5 * Dcx * g1 * v * w) ;
 
         g0 = g1;
         rho0 = rho1;
