@@ -25,6 +25,9 @@ struct solver
     Dc::Array{Float64,2};
     Dcx::Array{Float64,2};
 
+    rho1::Array{Float64,1};
+    g1::Array{Float64,2};
+   
     # Physical parameters
     sigmaA::Float64;
     sigmaS::Float64;
@@ -39,6 +42,9 @@ struct solver
 
         # Setting up the weights vector
         Nv = settings.Nv;
+
+        g1 = zeros(nxC,Nv);
+        rho1 = zeros(nx);
 
         quad = Quadrature(Nv,"Gauss");
 
@@ -91,7 +97,7 @@ struct solver
             Dcx[i+1,i] = -1/dx;
         end
 
-        new(x,xMid,settings,w,v,vp,vm,Dp,Dm,Dc,Dcx,settings.sigmaA,settings.sigmaS);
+        new(x,xMid,settings,w,v,vp,vm,Dp,Dm,Dc,Dcx,rho1,g1,settings.sigmaA,settings.sigmaS);
     end
  end
 
@@ -126,8 +132,8 @@ struct solver
     rho0,g0 = setupIC(obj);
     # println(rho0)
     ## pre=allocating memory for solution of macro and micro equation
-    g1 = zeros(size(g0));
-    rho1 = zeros(size(rho0));
+    g1 = obj.g1;
+    rho1 = zobj.rho1;
 
     Nt = round(Tend/dt);
     
