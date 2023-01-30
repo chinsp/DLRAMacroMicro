@@ -135,8 +135,8 @@ struct solver
     rho0,g0 = setupIC(obj);
     # println(rho0)
     ## pre=allocating memory for solution of macro and micro equation
-    g1 = zeros(size(g0));
-    rho1 = zeros(size(rho0));
+    g1 = obj.g1;
+    rho1 = obj.rho1;
 
     Nt = round(Tend/dt);
     
