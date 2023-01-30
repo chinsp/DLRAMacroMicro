@@ -25,6 +25,11 @@ struct solver
     Dc::Array{Float64,2};
     Dcx::Array{Float64,2};
 
+    
+    ## Pre-allocating output memory
+    rho1::Array{Float64,1};
+    g1::Array{Float64,2};
+
     # Physical parameters
     sigmaA::Float64;
     sigmaS::Float64;
@@ -39,6 +44,10 @@ struct solver
 
         # Setting up the weights vector
         Nv = settings.Nv;
+
+        #Pre-allocating memory for output
+        rho1 = zeros(nx);
+        g1 = zeros(nxC,Nv);
 
         quad = Quadrature(Nv,"Gauss");
 
@@ -91,7 +100,7 @@ struct solver
             Dcx[i+1,i] = -1/dx;
         end
 
-        new(x,xMid,settings,w,v,vp,vm,Dp,Dm,Dc,Dcx,settings.sigmaA,settings.sigmaS);
+        new(x,xMid,settings,w,v,vp,vm,Dp,Dm,Dc,Dcx,rho1,g1,settings.sigmaA,settings.sigmaS);
     end
  end
 
