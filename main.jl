@@ -14,7 +14,7 @@ s = Settings(501,201,0.5,"mixed"); # Give the number of discretisation points fo
 
 # run solver for various Settings
 
-s.Tend = 1.0;
+s.Tend = 5.0;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
 Solver = solver(s);
 @time t, rho1, g1 = solveFullProblem(Solver);
