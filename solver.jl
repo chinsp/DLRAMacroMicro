@@ -133,7 +133,7 @@ struct solver
     # println(rho0)
     ## pre=allocating memory for solution of macro and micro equation
     g1 = obj.g1;
-    rho1 = zobj.rho1;
+    rho1 = obj.rho1;
 
     Nt = round(Tend/dt);
     
