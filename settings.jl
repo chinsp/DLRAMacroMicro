@@ -51,8 +51,8 @@ mutable struct Settings
     function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic")
         # Setup spatial grid
         NxC = Nx - 1;
-        a = -5; # Starting point for the spatial interval
-        b = 5; # End point for the spatial interval
+        a = -1.5; # Starting point for the spatial interval
+        b = 1.5; # End point for the spatial interval
 
         # Setup temporal discretisation
         Tend = 5;
@@ -73,8 +73,8 @@ mutable struct Settings
         xMid = x .+ dx/2;
         xMid = xMid[1:(end-1)];
 
-        println("Number of points for spatial discretisation of macro = ",Nx);
-        println("Number of points for spatial discretisation of micro = ",NxC);
+        println("Number of points for spatial discretisation of macro equation = ",Nx);
+        println("Number of points for spatial discretisation of micro equation = ",NxC);
 
         # Setting up the time increment
         if cflType == "parabolic"
