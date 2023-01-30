@@ -133,8 +133,7 @@ struct solver
     vm = obj.vm;
 
     rho0,g0 = setupIC(obj);
-    # println(rho0)
-    ## pre=allocating memory for solution of macro and micro equation
+    
     g1 = obj.g1;
     rho1 = obj.rho1;
 
@@ -149,6 +148,7 @@ struct solver
         fac = epsilon^2/(epsilon^2 + obj.sigmaS*dt);
         RHS = (Dc * rho0 * Transpose(unitvec) * v)/(epsilon^2);
         RHS =  RHS + (Dp * g0 * vp + Dm * g0 * vm)*(Iden - 0.5 * w * Transpose(unitvec))/epsilon;
+        RHS = RHS + obj.sigmaA * g0;
         g1 =  g0 - dt*RHS;
         
         g1 =  fac * g1;
@@ -160,4 +160,40 @@ struct solver
         t = t + dt;
     end
     return t, rho1, g1;
+ end
+
+ function solveDLRA_PSI(obj::solver)
+    t = 0.0;
+    dt = obj.settings.dt;
+    Tend = obj.settings.Tend;
+    Nx = obj.settings.Nx;
+    NxC = obj.settings.NxC;
+    Nv = obj.settings.Nv;
+    epsilon = obj.settings.epsilon;
+
+    Dp = obj.Dp;
+    Dm = obj.Dm;
+    Dc = obj.Dc;
+    Dcx = obj.Dcx;
+
+    w = obj.w;
+    v = obj.v;
+    vp = obj.vp;
+    vm = obj.vm;
+
+    rho0,g0 = setupIC(obj);
+    
+    g1 = obj.g1;
+    rho1 = obj.rho1;
+
+    Nt = round(Tend/dt);
+    
+    unitvec = ones(Nv);
+    Iden = I(Nv);
+
+    r = obj.settings.r;
+
+    for k = ProgressBar(1:Nt)
+        println("Not done yet.")
+    end
  end
