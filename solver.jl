@@ -24,6 +24,7 @@ struct solver
     Dm::Array{Float64,2};
     Dc::Array{Float64,2};
     Dcx::Array{Float64,2};
+    Dcen::Array{Float64,2};
 
     
     ## Pre-allocating output memory
@@ -65,8 +66,9 @@ struct solver
         
         Dp = zeros(Float64,nxC,nxC);
         Dm = zeros(Float64,nxC,nxC);
-        Dc = zeros(Float64,nxC,nx);
-        Dcx = zeros(Float64,nx,nxC);
+        Dc = zeros(Float64,nxC,nx); # Central operator for rho in micro equation
+        Dcx = zeros(Float64,nx,nxC); # Central operator for g in macro equation
+        Dcen = zeros(Float64,nxC,nxC); # Central difference operator for X in DLRA
         
         # Currently running a second order upwind scheme
         
@@ -100,7 +102,12 @@ struct solver
             Dcx[i+1,i] = -1/dx;
         end
 
-        new(x,xMid,settings,w,v,vp,vm,Dp,Dm,Dc,Dcx,rho1,g1,settings.sigmaA,settings.sigmaS);
+        for i = 2:nxC-1
+            Dcen[i-1,i] = 1/(2*dx);
+            Dcen[i,i-1] = -1/(2*dx);
+        end
+
+        new(x,xMid,settings,w,v,vp,vm,Dp,Dm,Dc,Dcx,Dcen,rho1,g1,settings.sigmaA,settings.sigmaS);
     end
  end
 
@@ -170,30 +177,98 @@ struct solver
     NxC = obj.settings.NxC;
     Nv = obj.settings.Nv;
     epsilon = obj.settings.epsilon;
+    dx = obj.settings.dx;
 
     Dp = obj.Dp;
     Dm = obj.Dm;
     Dc = obj.Dc;
     Dcx = obj.Dcx;
+    Dcen = obj.Dcen;
 
     w = obj.w;
-    v = obj.v;
+    wd = Diagonal(w);
+    v = obj.v;    
     vp = obj.vp;
     vm = obj.vm;
 
     rho0,g0 = setupIC(obj);
-    
+
     g1 = obj.g1;
     rho1 = obj.rho1;
-
-    Nt = round(Tend/dt);
     
-    unitvec = ones(Nv);
-    Iden = I(Nv);
-
     r = obj.settings.r;
 
+    ## Initialising data for DLRA 
+    X,s,V = svd(g0);
+    X = X[:,1:r];
+    V = V[:,1:r];
+    S = Diagonal(s[1:r]);
+    S = S[1:r,1:r];
+
+    K = zeros(NxC,r);
+    L = zeros(Nv,r);
+    
+    I_Nv = I(Nv);
+    unitvec_Nv = ones(Nv);
+    v_vec = v * unitvec_Nv;
+
+
+    Oper1 = (I_Nv - 0.5 .* unitvec_Nv * Transpose(w));
+
+    Nt = round(Tend/dt);
+
     for k = ProgressBar(1:Nt)
-        println("Not done yet.")
+        ### Micro equation update using DLRA
+
+        ## K-step
+        K = X * S;
+        fac = epsilon^2/(epsilon^2 + dt * obj.sigmaS);
+
+        RHS_K = zeros(Nx,r);
+
+        RHS_K = (1/epsilon) .* Dp * K *Transpose(V)* (vp * wd - 0.5 .* vp * w * Transpose(w)) * V;
+        RHS_K = RHS_K + (1/epsilon) .* Dm * K *Transpose(V)* (vm * wd - 0.5 * vm * w * Transpose(w)) * V;
+        RHS_K = RHS_K + (1/epsilon^2) .* Dc * rho0 * Transpose(w) * v * V + obj.sigmaA .* K;
+
+        K = fac .* (K - dt * RHS_K);
+        X, S = qr(K);
+        X = Matrix(X);
+
+        ## L-step 
+        L = V * S;
+        fac = (epsilon^2/(epsilon^2 + dt*dx*obj.sigmaS));
+
+        y = zeros(Nv,r);
+        XDX = Transpose(X) * Dcen * X;
+        XDrho = Transpose(X) * Dc * rho0
+        for i = 1:r
+            for l = 1:r
+                y[:,i] += (-dx/epsilon) .* Oper1 * v * L[:,l] * XDX[i,l];
+            end
+            y[:,i] += (-dx/epsilon^2) * (v_vec .* XDrho[i]);
+            y[:,i] += -dx * obj.sigmaA .* L[:,i];
+        end
+        L = fac .* (L + dt*y);
+        
+        V,s = qr(L);
+        V = Matrix(V);
+        S = Transpose(S);
+
+        ## S-step
+        fac = (epsilon^2/(epsilon^2 - dt * dx * obj.sigmaS))
+        RHS_S = zeros(r,r);
+
+        RHS_S = (epsilon/2/dx) .* Transpose(X) * Dcen * X * S * Transpose(V) * (v * wd - 0.5 .* w * Transpose(w)) * V;
+        RHS_S = RHS_S + (dx/epsilon^2) .* Transpose(X) * Dc * rho0 * Transpose(w) * v * V;
+        RHS_S = RHS_S + dx * obj.sigmaA .* S;
+        
+        S = fac .* (S + dt * RHS_S);
+
+        ### Macro equation update 
+        rho1 = rho0 + dt .* (-0.5 .* Dcx * X * S * Transpose(V) * v * w - obj.sigmaA .* rho0);
+
+        rho0 = rho1
+        t = t + dt;
     end
- end
+    return t, rho1, X * S * Transpose(V)
+end

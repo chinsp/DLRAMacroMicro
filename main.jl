@@ -10,16 +10,22 @@ include("solver.jl")
 
 using PyPlot
 
-s = Settings(801,201,0.5,"mixed"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
+s = Settings(501,201,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
 
 # run solver for various Settings
 
 s.Tend = 1.0;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
 Solver = solver(s);
-@time t, rho1, g1 = solveFullProblem(Solver);
+# @time t, rho1, g1 = solveFullProblem(Solver);
+
+# s.Tend = 1.0;
+# # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
+# Solver = solver(s);
+@time t, rho2, g2 = solveDLRA_PSI(Solver);
 
 
 fig, ax = subplots(figsize=(15, 12), dpi=100)
-ax.plot(Solver.x, rho1)
+# ax.plot(Solver.x, rho1)
+ax.plot(Solver.x, rho2)
 fig.canvas.draw()
