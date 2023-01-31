@@ -51,8 +51,8 @@ mutable struct Settings
     function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic")
         # Setup spatial grid
         NxC = Nx - 1;
-        a = -1.5; # Starting point for the spatial interval
-        b = 1.5; # End point for the spatial interval
+        a = -5; # Starting point for the spatial interval
+        b = 5; # End point for the spatial interval
 
         # Setup temporal discretisation
         Tend = 5;
@@ -109,7 +109,7 @@ function ICrho(obj::Settings,x)
         floor = 1e-4;
         x0 = 0.0;
         for j in eachindex(y)
-            y[j] = max(floor,1.0/(sqrt(2*pi)*s1) *exp(-((x[j]-x0)*(x[j]-x0))/2.0/s2))
+            y[j] = max(floor,1.0/(sqrt(2*pi)*s1) *exp(-((x[j]-x0)*(x[j]-x0))/2.0/s2));
         end
     elseif obj.ICType == "ManufacturedSolution"
         println("Not coded yet")

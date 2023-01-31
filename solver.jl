@@ -153,6 +153,8 @@ struct solver
         
         rho1 = rho0 - dt *(0.5 * Dcx * g1 * v * w) ;
 
+        rho1[1],rho1[end] = 0,0;
+
         g0 = g1;
         rho0 = rho1;
         t = t + dt;
