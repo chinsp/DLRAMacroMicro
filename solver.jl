@@ -213,7 +213,10 @@ struct solver
     v_vec = v * unitvec_Nv;
 
 
-    Oper1 = (I_Nv - 0.5 .* unitvec_Nv * Transpose(w));
+    Oper1 = (I_Nv - 0.5 .* unitvec_Nv * Transpose(w))* v;
+    Oper2p = (wd - 0.5 .* w * Transpose(w))*vp;
+    Oper2m = (wd - 0.5 .* w * Transpose(w))*vm;
+    Oper = v*(wd - 0.5 .* w * Transpose(w));
 
     Nt = round(Tend/dt);
 
@@ -224,45 +227,26 @@ struct solver
         K = X * S;
         fac = epsilon^2/(epsilon^2 + dt * obj.sigmaS);
 
-        RHS_K = zeros(Nx,r);
-
-        RHS_K = (1/epsilon) .* Dp * K *Transpose(V)* (vp * wd - 0.5 .* vp * w * Transpose(w)) * V;
-        RHS_K = RHS_K + (1/epsilon) .* Dm * K *Transpose(V)* (vm * wd - 0.5 * vm * w * Transpose(w)) * V;
-        RHS_K = RHS_K + (1/epsilon^2) .* Dc * rho0 * Transpose(w) * v * V + obj.sigmaA .* K;
-
-        K = fac .* (K - dt * RHS_K);
+        K = fac * (K + dt * (-Dp * K * Transpose(V) * Oper2p * V ./epsilon - Dm * K * Transpose(V) * Oper2m * V ./epsilon - Dc * rho0 * Transpose(w) * v * V - obj.sigmaA .* K)) ;
         X, S = qr(K);
         X = Matrix(X);
 
         ## L-step 
         L = V * S;
-        fac = (epsilon^2/(epsilon^2 + dt*dx*obj.sigmaS));
 
-        y = zeros(Nv,r);
-        XDX = Transpose(X) * Dcen * X;
-        XDrho = Transpose(X) * Dc * rho0
-        for i = 1:r
-            for l = 1:r
-                y[:,i] += (-dx/epsilon) .* Oper1 * v * L[:,l] * XDX[i,l];
-            end
-            y[:,i] += (-dx/epsilon^2) * (v_vec .* XDrho[i]);
-            y[:,i] += -dx * obj.sigmaA .* L[:,i];
-        end
-        L = fac .* (L + dt*y);
+        fac = (epsilon^2/(epsilon^2 + dt*obj.sigmaS));
+
+        L = fac * (L + dt * (- dx .* (Oper1 * L * Transpose(X) * Transpose(Dcen) * X) ./epsilon - dx .*(v * unitvec_Nv * Transpose(rho0) * Transpose(Dc) * X) ./ epsilon^2 - obj.sigmaA .*L));
         
         V,s = qr(L);
         V = Matrix(V);
         S = Transpose(S);
 
         ## S-step
-        fac = (epsilon^2/(epsilon^2 - dt * dx * obj.sigmaS))
-        RHS_S = zeros(r,r);
-
-        RHS_S = (epsilon/2/dx) .* Transpose(X) * Dcen * X * S * Transpose(V) * (v * wd - 0.5 .* w * Transpose(w)) * V;
-        RHS_S = RHS_S + (dx/epsilon^2) .* Transpose(X) * Dc * rho0 * Transpose(w) * v * V;
-        RHS_S = RHS_S + dx * obj.sigmaA .* S;
+        fac = (epsilon^2/(epsilon^2 - dt * obj.sigmaS))
         
-        S = fac .* (S + dt * RHS_S);
+        S = fac .* (S + dt .* (dx .* (Transpose(X)*Dcen*X*S*Transpose(V)*Oper*V)./epsilon + dx .*(Transpose(X)*Dc*rho0*Transpose(w)*v*V)./epsilon^2 + obj.sigmaA .* S) )
+        
 
         ### Macro equation update 
         rho1 = rho0 + dt .* (-0.5 .* Dcx * X * S * Transpose(V) * v * w - obj.sigmaA .* rho0);

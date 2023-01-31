@@ -10,7 +10,7 @@ include("solver.jl")
 
 using PyPlot
 
-s = Settings(501,201,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
+s = Settings(1001,500,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
 
 # run solver for various Settings
 
