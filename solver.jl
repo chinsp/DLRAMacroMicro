@@ -27,7 +27,6 @@ struct solver
 
     rho1::Array{Float64,1};
     g1::Array{Float64,2};
-
     # Physical parameters
     sigmaA::Float64;
     sigmaS::Float64;

@@ -14,7 +14,7 @@ s = Settings(501,501,1e-6,"parabolic"); # Give the number of discretisation poin
 
 # run solver for various Settings
 
-s.Tend = 5.0;
+s.Tend = 1.0;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
 Solver = solver(s);
 @time t, rho1, g1 = solveFullProblem(Solver);
