@@ -10,11 +10,11 @@ include("solver.jl")
 
 using PyPlot
 
-s = Settings(251,501,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
+s = Settings(501,501,1e-6,"parabolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
 
 # run solver for various Settings
 
-s.Tend = 1.0;
+s.Tend = 5.0;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
 Solver = solver(s);
 @time t, rho1, g1 = solveFullProblem(Solver);
