@@ -56,7 +56,7 @@ mutable struct Settings
 
         # Setup temporal discretisation
         Tend = 5;
-        cfl1 = 0.1; # CFL condition parabolic
+        cfl1 = 1.0; # CFL condition parabolic
         cfl2 = 0.1; # CFL condition hyperbolic
         # cflType = "parabolic"; # or "parabolic", "mixed"
 
@@ -109,7 +109,7 @@ function ICrho(obj::Settings,x)
         floor = 1e-4;
         x0 = 0.0;
         for j in eachindex(y)
-            y[j] = max(floor,1.0/(sqrt(2*pi)*s1) *exp(-((x[j]-x0)*(x[j]-x0))/2.0/s2))
+            y[j] = max(floor,1.0/(sqrt(2*pi)*s1) *exp(-((x[j]-x0)*(x[j]-x0))/2.0/s2));
         end
     elseif obj.ICType == "ManufacturedSolution"
         println("Not coded yet")

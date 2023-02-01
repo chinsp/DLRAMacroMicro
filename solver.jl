@@ -27,7 +27,6 @@ struct solver
 
     rho1::Array{Float64,1};
     g1::Array{Float64,2};
-   
     # Physical parameters
     sigmaA::Float64;
     sigmaS::Float64;
@@ -145,12 +144,15 @@ struct solver
     for k = ProgressBar(1:Nt)
         fac = epsilon^2/(epsilon^2 + obj.sigmaS*dt);
         RHS = (Dc * rho0 * Transpose(unitvec) * v)/(epsilon^2);
-        RHS =  RHS + (Dp * g0 * vp + Dm * g0 * vm)*(Iden - 0.5 * w * Transpose(unitvec))/epsilon;
-        g1 =  g0 - dt*RHS;
+        RHS =  RHS .+ (Dp * g0 * vp + Dm * g0 * vm)*(Iden - 0.5 * w * Transpose(unitvec))/epsilon;
+        RHS = RHS .+ obj.sigmaA .* g0;
+        g1 =  g0 .- dt*RHS; 
         
         g1 =  fac * g1;
         
         rho1 = rho0 - dt *(0.5 * Dcx * g1 * v * w) ;
+
+        rho1[1],rho1[end] = 0,0;
 
         g0 = g1;
         rho0 = rho1;
