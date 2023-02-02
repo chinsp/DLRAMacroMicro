@@ -160,3 +160,40 @@ struct solver
     end
     return t, rho1, g1;
  end
+
+ function solveLimitingDiff(obj::solver)
+    t = 0.0;
+    dt = obj.settings.dt;
+    Tend = obj.settings.Tend;
+    Nx = obj.settings.Nx;
+    dx = obj.settings.dx;
+
+    rho0,g0 = setupIC(obj);
+    # println(rho0)
+    ## pre=allocating memory for solution of macro and micro equation
+    g1 = obj.g1;
+
+    Nt = round(Tend/dt);
+
+    println("Running solver for the limiting diffusion equation")
+
+    for k = ProgressBar(1:Nt)
+        y = zeros(Nx);
+        for i = 1:Nx
+            if i == 1
+                y[i] = (rho0[i+1] - 2*rho0[i])./ (dx^2 * 3 * obj.sigmaS);
+            elseif i == Nx
+                y[i] = (-2*rho0[i] + rho0[i-1]) ./ (dx^2 * 3 * obj.sigmaS)   ;
+            else
+                y[i] = (rho0[i+1] - 2*rho0[i] + rho0[i-1])./ (dx^2 * 3 * obj.sigmaS);
+            end
+        end
+
+        rho1 = rho0 + dt .* y;
+
+        rho0 = rho1;
+        t = t + dt;
+    end
+
+    return t, rho0;
+ end
