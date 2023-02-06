@@ -11,7 +11,7 @@ include("solver.jl")
 using PyPlot
 using BenchmarkTools
 
-s = Settings(501,501,1e-6,"parabolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
+s = Settings(1001,500,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
 
 # run solver for various Settings
 
@@ -23,16 +23,16 @@ Solver = solver(s);
 s.Tend = 1.0;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
 # Solver = solver(s);
-@time t, rho2 = solveLimitingDiff(Solver);
+# @time t, rho2 = solveLimitingDiff(Solver);
 
 
 fig, ax = subplots(figsize=(15, 12), dpi=100);
 ax.plot(Solver.x, rho1, label="Macro-Micro");
-ax.plot(Solver.x, rho2, label="Diffusion limit");
+# ax.plot(Solver.x, rho2, label="Diffusion limit");
 ax.legend();
 fig.canvas.draw();
 
-fig, ax = subplots(figsize=(15, 12), dpi=100);
-ax.semilogy(Solver.x, rho2-rho1, label="Error");
-ax.legend();
-fig.canvas.draw();
+# fig, ax = subplots(figsize=(15, 12), dpi=100);
+# ax.semilogy(Solver.x, rho2-rho1, label="Error");
+# ax.legend();
+# fig.canvas.draw();
