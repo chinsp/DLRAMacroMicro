@@ -214,8 +214,8 @@ struct solver
 
 
     Oper1 = (I_Nv - 0.5 .* unitvec_Nv * Transpose(w))* v;
-    Oper2p = (wd - 0.5 .* w * Transpose(w))*vp;
-    Oper2m = (wd - 0.5 .* w * Transpose(w))*vm;
+    Oper2p = vp*(wd - 0.5 .* w * Transpose(w));
+    Oper2m = vm*(wd - 0.5 .* w * Transpose(w));
     Oper = v*(wd - 0.5 .* w * Transpose(w));
 
     Nt = round(Tend/dt);
@@ -224,34 +224,34 @@ struct solver
         ### Micro equation update using DLRA
 
         ## K-step
-        K = X * S;
-        fac = 1 + dt * obj.sigmaS/epsilon^2;
+        K .= X * S;
+        fac = 1 + dt*obj.sigmaS/epsilon^2;
 
-        K = (1/fac) .* (K + dt * (-Dp * K * Transpose(V) * Oper2p * V ./epsilon - Dm * K * Transpose(V) * Oper2m * V ./epsilon - Dc * rho0 * Transpose(w) * v * V - obj.sigmaA .* K)) ;
+        K .= (1/fac) .* (K + dt * (-Dp * K * Transpose(V) * Oper2p   - Dm * K * Transpose(V) * Oper2m)* V./epsilon - (Dc * rho0 * Transpose(w) * v * V)./epsilon^2 - obj.sigmaA .* K) ;
         X, S = qr(K);
         X = Matrix(X);
 
         ## L-step 
-        L = V * S;
+        L .= V * Transpose(S);
 
         fac = 1 + dt*obj.sigmaS/epsilon^2;
 
-        L = (1/fac) .* (L + dt * (- dx .* (Oper1 * L * Transpose(X) * Transpose(Dcen) * X) ./epsilon - dx .*(v * unitvec_Nv * Transpose(rho0) * Transpose(Dc) * X) ./ epsilon^2 - obj.sigmaA .*L));
+        L .= (1/fac).*(L + dt.*(- dx.*(Oper1 * L * Transpose(X) * Transpose(Dcen) * X)./epsilon - dx.*(v * unitvec_Nv * Transpose(rho0) * Transpose(Dc) * X)./(epsilon^2) - obj.sigmaA .*L));
         
-        V,s = qr(L);
+        V,S1 = qr(L);
         V = Matrix(V);
-        S = Transpose(S);
+        S .= Transpose(S1);
 
         ## S-step
-        fac = 1 - dt * obj.sigmaS/epsilon^2;
+        fac = 1 - dt*obj.sigmaS/epsilon^2;
         
-        S = (1/fac) .* (S + dt .* (dx .* (Transpose(X)*Dcen*X*S*Transpose(V)*Oper*V)./epsilon + dx .*(Transpose(X)*Dc*rho0*Transpose(w)*v*V)./epsilon^2 + obj.sigmaA .* S) )
+        S .= (1/fac).*(S + dt.*(dx.*(Transpose(X)*Dcen*X*S*Transpose(V)*Oper*V)./epsilon + dx.*(Transpose(X)*Dc*rho0*Transpose(w)*v*V)./epsilon^2 + obj.sigmaA.*S) )
         
 
         ### Macro equation update 
-        rho1 = rho0 + dt .* (-0.5 .* Dcx * X * S * Transpose(V) * v * w - obj.sigmaA .* rho0);
+        rho1 .= rho0 - dt .* (0.5 .* Dcx * X * S * Transpose(V) * v * w + obj.sigmaA .* rho0);
 
-        rho0 = rho1;
+        rho0 .= rho1;
         t = t + dt;
     end
     return t, rho1, X * S * Transpose(V);

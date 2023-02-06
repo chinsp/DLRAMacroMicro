@@ -51,13 +51,13 @@ mutable struct Settings
     function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic")
         # Setup spatial grid
         NxC = Nx - 1;
-        a = -1.5; # Starting point for the spatial interval
-        b = 1.5; # End point for the spatial interval
+        a = -5; # Starting point for the spatial interval
+        b = 5; # End point for the spatial interval
 
         # Setup temporal discretisation
         Tend = 5;
-        cfl1 = 0.1; # CFL condition parabolic
-        cfl2 = 0.1; # CFL condition hyperbolic
+        cfl1 = 1.0; # CFL condition parabolic
+        cfl2 = 0.05; # CFL condition hyperbolic
         # cflType = "parabolic"; # or "parabolic", "mixed"
 
         # epsilon = 10^-6;
