@@ -172,8 +172,8 @@ struct solver
  function setupIC(obj::solver)
     g0 = zeros(obj.settings.NxC,obj.settings.Nv);
     rho0 = zeros(obj.settings.Nx);
-    rho0 = ICrho(obj.settings,obj.x);
-    g0 = ICg(obj.settings,obj.xMid);
+    rho0 .= ICrho(obj.settings,obj.x);
+    g0 .= ICg(obj.settings,obj.xMid);
     return rho0,g0;
  end
 
@@ -212,15 +212,14 @@ struct solver
     println("Running solver for the Sn solver for the full problem")
     
     for k = ProgressBar(1:Nt)
-        fac = epsilon^2/(epsilon^2 + obj.sigmaS*dt);
-        RHS = (Dc * rho0 * Transpose(unitvec) * v)/(epsilon^2);
-        RHS =  RHS .+ (Dp * g0 * vp + Dm * g0 * vm)*(Iden - 0.5 * w * Transpose(unitvec))/epsilon;
-        RHS = RHS .+ obj.sigmaA .* g0;
-        g1 =  g0 .- dt*RHS; 
+        RHS = zeros(NxC,Nv);
+        fac = 1 + dt*obj.sigmaS/epsilon^2;
+        RHS .= (Dc * rho0 * Transpose(unitvec) * v)./(epsilon^2);
+        RHS .=  RHS .+ (Dp * g0 * vp .+ Dm * g0 * vm)*(Iden .- 0.5 * w * Transpose(unitvec))./epsilon;
+        RHS .= RHS .+ obj.sigmaA .* g0 ;
+        g1 .=  (g0 .- dt*RHS)./fac; 
         
-        g1 =  fac * g1;
-        
-        rho1 = rho0 - dt *(0.5 * Dcx * g1 * v * w) ;
+        rho1 = rho0 - dt *(0.5 .* Dcx * g1 * v * w) ;
 
         rho1[1],rho1[end] = 0,0;
 
