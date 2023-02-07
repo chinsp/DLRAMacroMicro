@@ -227,9 +227,11 @@ struct solver
         K .= X * S;
         fac = 1 + dt*obj.sigmaS/epsilon^2;
 
-        K .= (1/fac) .* (K + dt * (-Dp * K * Transpose(V) * Oper2p   - Dm * K * Transpose(V) * Oper2m)* V./epsilon - (Dc * rho0 * Transpose(w) * v * V)./epsilon^2 - obj.sigmaA .* K) ;
+        K .= (1/fac) .* (K - dt * (Dp * K * Transpose(V) * Oper2p + Dm * K * Transpose(V) * Oper2m)* V./epsilon + (Dc * rho0 * Transpose(w) * v * V)./epsilon^2 - obj.sigmaA .* K) ;
         X, S = qr(K);
         X = Matrix(X);
+        X = X[:,1:r];
+        S = S[1:r,1:r];
 
         ## L-step 
         L .= V * Transpose(S);
@@ -240,13 +242,14 @@ struct solver
         
         V,S1 = qr(L);
         V = Matrix(V);
-        S .= Transpose(S1);
+        V = V[:,1:r];
+        S .= Transpose(S1[1:r,1:r]);
 
         ## S-step
         fac = 1 - dt*obj.sigmaS/epsilon^2;
         
         S .= (1/fac).*(S + dt.*(dx.*(Transpose(X)*Dcen*X*S*Transpose(V)*Oper*V)./epsilon + dx.*(Transpose(X)*Dc*rho0*Transpose(w)*v*V)./epsilon^2 + obj.sigmaA.*S) )
-        
+        S = S[1:r,1:r];
 
         ### Macro equation update 
         rho1 .= rho0 - dt .* (0.5 .* Dcx * X * S * Transpose(V) * v * w + obj.sigmaA .* rho0);
