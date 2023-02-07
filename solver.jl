@@ -238,7 +238,7 @@ struct solver
 
         fac = 1 + dt*obj.sigmaS/epsilon^2;
 
-        L .= (1/fac).*(L + dt.*(- dx.*(Oper1 * L * Transpose(X) * Transpose(Dcen) * X)./epsilon - dx.*(v * unitvec_Nv * Transpose(rho0) * Transpose(Dc) * X)./(epsilon^2) - obj.sigmaA .*L));
+        L .= (1/fac).*(L .- dt.*( dx.*(Oper1 * L * Transpose(X) * Transpose(Dcen) * X)./epsilon + dx.*(v * unitvec_Nv * Transpose(rho0) * Transpose(Dc) * X)./(epsilon^2) + obj.sigmaA .*L));
         
         V,S1 = qr(L);
         V = Matrix(V);
