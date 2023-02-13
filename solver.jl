@@ -13,11 +13,19 @@ struct solver
     # Solver settings
     settings::Settings;
 
-    # Angular discretisation
+    ## Angular discretisation
+
+    # Sn discretisation
     w::Array{Float64,1};
     v::Array{Float64,2};
     vp::Array{Float64,2};
     vm::Array{Float64,2};
+
+    # Pn discretisation 
+    AFull::Array{Float64,2};
+    A::Array{Float64,2};
+    absA::Array{Float64,2};
+    Abar::Array{Float64,1};
 
     # Stencil matrices for spatial discretisation
     Dp::Array{Float64,2};
@@ -138,7 +146,7 @@ struct solver
         Dx = Tridiagonal(-ones(nxC-1)./2/dx, zeros(nxC), ones(nxC-1)./2/dx);
         Dxx = Tridiagonal(ones(nxC-1)./2/dx, -ones(nxC)./dx, ones(nxC-1)./2/dx);
 
-        new(x,xMid,settings,w,v,vp,vm,Dp,Dm,Dc,Dcx,Dx,Dxx,rho1,g1,settings.sigmaA,settings.sigmaS);
+        new(x,xMid,settings,w,v,vp,vm,AFull,A,absA,Abar,Dp,Dm,Dc,Dcx,Dx,Dxx,rho1,g1,settings.sigmaA,settings.sigmaS);
     end
  end
 
