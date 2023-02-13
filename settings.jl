@@ -26,6 +26,9 @@ mutable struct Settings
     ## Settings for angular approximation
     # Number of quadrature points
     Nv::Int64;
+
+    # Number of moments for the Pn method
+    N::Int64;
     
     ## Spatial grid
     x
@@ -97,7 +100,7 @@ mutable struct Settings
 
         r = 30;
 
-        new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r);
+        new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,N,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r);
     end
 end
 
