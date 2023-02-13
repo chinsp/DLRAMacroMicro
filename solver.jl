@@ -278,7 +278,7 @@ struct solver
     Nt = round(Tend/dt); # Computing the number of steps required 
     dt = Tend/Nt; # Adjusting the step size 
 
-    fac = 1 + obj.settings.sigmaS*dt/epsilon^;
+    fac = 1 + obj.settings.sigmaS*dt/epsilon^2;
 
     println("Running solver for the Pn solver for the full problem")
 
