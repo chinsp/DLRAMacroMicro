@@ -220,6 +220,8 @@ struct solver
     Nv = obj.settings.Nv;
     epsilon = obj.settings.epsilon;
 
+    Dx = obj.Dx;
+    Dxx = obj.Dxx;
     Dc = obj.Dc;
     Dcx = obj.Dcx;
 
