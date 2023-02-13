@@ -51,7 +51,7 @@ mutable struct Settings
     ## Low-rank approximation parameters
     r::Int; # rank of approximation
 
-    function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic")
+    function Settings(Nx::Int=1001,Nv::Int=500,N::Int=250,epsilon::Float64=1.0,cflType::String="hyperbolic")
         # Setup spatial grid
         NxC = Nx - 1;
         a = -5; # Starting point for the spatial interval
