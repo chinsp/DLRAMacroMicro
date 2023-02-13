@@ -24,6 +24,8 @@ struct solver
     Dm::Array{Float64,2};
     Dc::Array{Float64,2};
     Dcx::Array{Float64,2};
+    Dx::Array{Float64,2};
+    Dxx::Array{Float64,2};
 
     rho1::Array{Float64,1};
     g1::Array{Float64,2};
@@ -59,8 +61,13 @@ struct solver
 
         dx = settings.dx;
         
+        # Stencil matrices for the Sn sovler
         Dp = zeros(Float64,nxC,nxC);
         Dm = zeros(Float64,nxC,nxC);
+
+        # Stencil matrices for the Pn solver
+        Dx = zeros(Float64,nxC,nxC)
+
         Dc = zeros(Float64,nxC,nx);
         Dcx = zeros(Float64,nx,nxC);
         
@@ -109,7 +116,7 @@ struct solver
  end
 
 
- function solveFullProblem(obj::solver)
+ function solveFullProblem_Sn(obj::solver)
     t = 0.0;
     dt = obj.settings.dt;
     Tend = obj.settings.Tend;
@@ -134,12 +141,13 @@ struct solver
     g1 = obj.g1;
     rho1 = obj.rho1;
 
-    Nt = round(Tend/dt);
+    Nt = round(Tend/dt); # Compute the number of steps
+    dt = Tend/Nt; # Find the step size 
     
     unitvec = ones(Nv);
     Iden = I(Nv);
 
-    println("Running solver for the full problem")
+    println("Running solver for the Sn solver for the full problem")
     
     for k = ProgressBar(1:Nt)
         fac = epsilon^2/(epsilon^2 + obj.sigmaS*dt);
@@ -197,3 +205,28 @@ struct solver
 
     return t, rho0;
  end
+
+ function solveFullProblem_Pn(obj::solver)
+    t = 0.0;
+    dt = obj.settings.dt;
+    Tend = obj.settings.Tend;
+    Nx = obj.settings.Nx;
+    NxC = obj.settings.NxC;
+    Nv = obj.settings.Nv;
+    epsilon = obj.settings.epsilon;
+
+    Dc = obj.Dc;
+    Dcx = obj.Dcx;
+
+    rho0,g0 = setupIC(obj);
+    # println(rho0)
+    ## pre=allocating memory for solution of macro and micro equation
+    g1 = obj.g1;
+    rho1 = obj.rho1;
+
+    Nt = round(Tend/dt); # Computing the number of steps required 
+    dt = Tend/Nt; # Adjusting the step size 
+
+    println("Running solver for the Pn solver for the full problem")
+    
+end
