@@ -286,7 +286,7 @@ struct solver
         g1 = g0 + dt.*(-Dx*g0*Transpose(A)./epsilon + Dxx*g0*Transpose(absA)./epsilon - Dc*rho0*Transpose(Abar) - obj.settings.sigmaA*g0);
         g1 .= g1./fac;
 
-        rho1 = rho0 + dt.*(-0.5*Abar[1]*Dcx*g1 - obj.settings.sigmaA*rho0);
+        rho1 = rho0 + dt.*(-0.5*Abar[1]*Dcx*g1[:,1] - obj.settings.sigmaA*rho0);
 
         rho0 .= rho1;
         g0 .= g1;
