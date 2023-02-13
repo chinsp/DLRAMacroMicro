@@ -158,7 +158,7 @@ struct solver
     return rho0,g0;
  end
 
-
+#IMEX solver
  function solveFullProblem_Sn(obj::solver)
     t = 0.0;
     dt = obj.settings.dt;
@@ -246,9 +246,11 @@ struct solver
         t = t + dt;
     end
 
-    return t, rho0;
+    return t, rho1;
  end
 
+
+#IMEX solver
  function solveFullProblem_Pn(obj::solver)
     t = 0.0;
     dt = obj.settings.dt;
@@ -257,6 +259,10 @@ struct solver
     NxC = obj.settings.NxC;
     Nv = obj.settings.Nv;
     epsilon = obj.settings.epsilon;
+
+    A = obj.A;
+    absA = obj.absA;
+    Abar = obj.Abar;
 
     Dx = obj.Dx;
     Dxx = obj.Dxx;
@@ -272,6 +278,21 @@ struct solver
     Nt = round(Tend/dt); # Computing the number of steps required 
     dt = Tend/Nt; # Adjusting the step size 
 
+    fac = 1 + obj.settings.sigmaS*dt/epsilon^;
+
     println("Running solver for the Pn solver for the full problem")
-    
+
+    for k =ProgressBar(1:Nt)
+        g1 = g0 + dt.*(-Dx*g0*Transpose(A)./epsilon + Dxx*g0*Transpose(A)./epsilon - Dc*rho0*Transpose(Abar) - obj.settings.sigmaA*g0);
+        g1 .= g1./fac;
+
+        rho1 = rho0 + dt.*(-0.5*Abar[1]*Dcx*g1 - obj.settings.sigmaA*rho0);
+
+        rho0 .= rho1;
+        g0 .= g1;
+
+        t = t+dt;
+    end
+    return t,rho1,g1;
+
 end
