@@ -95,6 +95,7 @@ struct solver
             Dcx[i,i] = 1/dx;
             Dcx[i+1,i] = -1/dx;
         end
+        Dcx[1,1],Dcx[end,end] = 0,0; 
 
         new(x,xMid,settings,w,v,vp,vm,Dp,Dm,Dc,Dcx,rho1,g1,settings.sigmaA,settings.sigmaS);
     end
@@ -133,6 +134,8 @@ struct solver
     ## pre=allocating memory for solution of macro and micro equation
     g1 = obj.g1;
     rho1 = obj.rho1;
+    
+    fac = 1 + dt*obj.sigmaS/epsilon^2;
 
     Nt = round(Tend/dt);
     
@@ -143,15 +146,17 @@ struct solver
     
     for k = ProgressBar(1:Nt)
         RHS = zeros(NxC,Nv);
-        fac = 1 + dt*obj.sigmaS/epsilon^2;
+
         RHS .= (Dc * rho0 * Transpose(unitvec) * v)./(epsilon^2);
         RHS .=  RHS .+ (Dp * g0 * vp .+ Dm * g0 * vm)*(Iden .- 0.5 * w * Transpose(unitvec))./epsilon;
         RHS .= RHS .+ obj.sigmaA .* g0 ;
-        g1 .=  (g0 .- dt*RHS)./fac; 
+        g1 =  (g0 .- dt*RHS)./fac; 
         
-        rho1 = rho0 - dt *(0.5 .* Dcx * g1 * v * w) ;
+        rho1 = rho0 .- dt *(0.5 .* Dcx * g1 * v * w) ;
 
-        rho1[1],rho1[end] = 0,0;
+        # rho1[1] = rho1[end-1]; rho1[end] = rho1[2];
+        # g1[1,:] = g1[end-1,:]; g1[end,:] = g1[2,:];
+
 
         g0 = g1;
         rho0 = rho1;

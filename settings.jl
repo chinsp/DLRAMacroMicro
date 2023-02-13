@@ -51,8 +51,8 @@ mutable struct Settings
     function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic")
         # Setup spatial grid
         NxC = Nx - 1;
-        a = -5; # Starting point for the spatial interval
-        b = 5; # End point for the spatial interval
+        a = -1.5; # Starting point for the spatial interval
+        b = 1.5; # End point for the spatial interval
 
         # Setup temporal discretisation
         Tend = 5;
@@ -63,10 +63,10 @@ mutable struct Settings
         # epsilon = 10^-6;
 
         # Initial conditions
-        ICType = "LS" ;
+        ICType = "PS" ;
 
         # Problem 
-        problem = "LineSource";
+        problem = "PlaneSource";
 
         x = collect(range(a,stop = b,length = Nx));
         dx = x[2] - x[1];
@@ -88,7 +88,7 @@ mutable struct Settings
         end
 
         # Physical parameters
-        if problem == "LineSource"
+        if problem == "PlaneSource"
             sigmaS = 1.0;
             sigmaA = 0.0;
         end
@@ -103,7 +103,7 @@ end
 
 function ICrho(obj::Settings,x)
     y = zeros(size(x));
-    if obj.ICType == "LS"
+    if obj.ICType == "PS"
         s1 = 0.03;
         s2 = s1^2;
         floor = 1e-4;
@@ -119,7 +119,7 @@ end
 
 function ICg(obj::Settings,x)
     y = zeros(length(x),obj.Nv);
-    if obj.ICType == "LS"
+    if obj.ICType == "PS"
         y = y;
     elseif obj.ICType == "ManufacturedSolution"
         println("Not coded yet");
