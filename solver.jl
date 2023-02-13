@@ -47,6 +47,8 @@ struct solver
         g1 = zeros(nxC,Nv);
         rho1 = zeros(nx);
 
+        # Setting up matrices for Sn solver
+
         quad = Quadrature(Nv,"Gauss");
 
         w = quad.w[end:-1:1];
@@ -58,6 +60,31 @@ struct solver
             vp[q,q] = max(v[q,q],0);
             vm[q,q] = min(v[q,q],0);
         end
+
+        # Setting up the matrices for the Pn solver
+        nPN = settings.N + 1; # total number of Legendre polynomials used
+        gamma = zeros(nPN); # vector with norms of the Legendre polynomials
+
+        for i = 1:nPN
+            gamma[i] = 2/(2*(i-1) + 1);
+        end
+
+        A = zeros(Float64,nPN-1,nPN-1); # reduced Flux matrix for the micro equation
+        a_norm = zeros(Float64,nPN);
+
+        for i = 1:nPN
+            a[i] = i/(sqrt((2i-1)*(2i+1)));
+        end
+
+        AFull = Tridiagonal(a_norm[1:end-1],zeros(nPN),a_norm[1:end-1]); # Full flux matrix
+
+        A = AFull[2:end,2:end];
+
+        M,R = eigen(AFull);
+
+        Mabs = broadcast(abs,M);
+        absA1 = R*Diagonal(Mabs)*Transpose(R); # Computing and setting Roe's matrix
+        absA = absA1[2:end,2:end];
 
         dx = settings.dx;
         
