@@ -26,9 +26,6 @@ mutable struct Settings
     ## Settings for angular approximation
     # Number of quadrature points
     Nv::Int64;
-
-    # Number of moments for the Pn method
-    N::Int64;
     
     ## Spatial grid
     x
@@ -51,7 +48,7 @@ mutable struct Settings
     ## Low-rank approximation parameters
     r::Int; # rank of approximation
 
-    function Settings(Nx::Int=1001,Nv::Int=500,N::Int=250,epsilon::Float64=1.0,cflType::String="hyperbolic")
+    function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic")
         # Setup spatial grid
         NxC = Nx - 1;
         a = -5; # Starting point for the spatial interval
@@ -100,7 +97,7 @@ mutable struct Settings
 
         r = 30;
 
-        new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,N,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r);
+        new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r);
     end
 end
 

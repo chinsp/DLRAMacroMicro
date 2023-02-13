@@ -70,7 +70,7 @@ struct solver
         end
 
         # Setting up the matrices for the Pn solver
-        nPN = settings.N + 1; # total number of Legendre polynomials used
+        nPN = settings.Nv + 1; # total number of Legendre polynomials used
         gamma = zeros(nPN); # vector with norms of the Legendre polynomials
 
         for i = 1:nPN
@@ -88,7 +88,7 @@ struct solver
 
         A = AFull[2:end,2:end]; # extractign reduced flux matrix for the micro equations
 
-        M,R = eigen(AFull);
+        M,R = eigen(Matrix(AFull));
 
         Mabs = broadcast(abs,M);
         absA1 = R*Diagonal(Mabs)*Transpose(R); # Computing and setting Roe's matrix
@@ -283,7 +283,7 @@ struct solver
     println("Running solver for the Pn solver for the full problem")
 
     for k =ProgressBar(1:Nt)
-        g1 = g0 + dt.*(-Dx*g0*Transpose(A)./epsilon + Dxx*g0*Transpose(A)./epsilon - Dc*rho0*Transpose(Abar) - obj.settings.sigmaA*g0);
+        g1 = g0 + dt.*(-Dx*g0*Transpose(A)./epsilon + Dxx*g0*Transpose(absA)./epsilon - Dc*rho0*Transpose(Abar) - obj.settings.sigmaA*g0);
         g1 .= g1./fac;
 
         rho1 = rho0 + dt.*(-0.5*Abar[1]*Dcx*g1 - obj.settings.sigmaA*rho0);
