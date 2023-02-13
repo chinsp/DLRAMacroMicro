@@ -66,8 +66,10 @@ struct solver
         Dm = zeros(Float64,nxC,nxC);
 
         # Stencil matrices for the Pn solver
-        Dx = zeros(Float64,nxC,nxC)
+        Dx = zeros(Float64,nxC,nxC);
+        Dxx = zeros(Float64,nxC,nxC);
 
+        # Stencil matrices for macro-micro interface
         Dc = zeros(Float64,nxC,nx);
         Dcx = zeros(Float64,nx,nxC);
         
@@ -103,7 +105,10 @@ struct solver
             Dcx[i+1,i] = -1/dx;
         end
 
-        new(x,xMid,settings,w,v,vp,vm,Dp,Dm,Dc,Dcx,rho1,g1,settings.sigmaA,settings.sigmaS);
+        Dx = Tridiagonal(-ones(nxC-1)./2/dx, zeros(nxC), ones(nxC-1)./2/dx);
+        Dxx = Tridiagonal(ones(nxC-1)./2/dx, -ones(nxC)./dx, ones(nxC-1)./2/dx);
+
+        new(x,xMid,settings,w,v,vp,vm,Dp,Dm,Dc,Dcx,Dx,Dxx,rho1,g1,settings.sigmaA,settings.sigmaS);
     end
  end
 
