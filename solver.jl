@@ -73,18 +73,21 @@ struct solver
         a_norm = zeros(Float64,nPN);
 
         for i = 1:nPN
-            a[i] = i/(sqrt((2i-1)*(2i+1)));
+            a_norm[i] = i/(sqrt((2i-1)*(2i+1)));
         end
 
         AFull = Tridiagonal(a_norm[1:end-1],zeros(nPN),a_norm[1:end-1]); # Full flux matrix
 
-        A = AFull[2:end,2:end];
+        A = AFull[2:end,2:end]; # extractign reduced flux matrix for the micro equations
 
         M,R = eigen(AFull);
 
         Mabs = broadcast(abs,M);
         absA1 = R*Diagonal(Mabs)*Transpose(R); # Computing and setting Roe's matrix
         absA = absA1[2:end,2:end];
+
+        Abar = zeros(Float64,nPN-1);
+        Abar[1] = gamma[2];
 
         dx = settings.dx;
         
