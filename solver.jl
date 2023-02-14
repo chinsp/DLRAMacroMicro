@@ -88,14 +88,17 @@ struct solver
 
         A = AFull[2:end,2:end]; # extractign reduced flux matrix for the micro equations
 
-        M,R = eigen(Matrix(AFull));
+        S = eigvals(A);
+        V = eigvecs(A);
+        absA = V*abs.(diagm(S))*inv(V);
 
-        Mabs = broadcast(abs,M);
-        absA1 = R*Diagonal(Mabs)*Transpose(R); # Computing and setting Roe's matrix
-        absA = absA1[2:end,2:end];
+        # Mabs = broadcast(abs,M);
+        # absA = R*Diagonal(Mabs)*Transpose(R); # Computing and setting Roe's matrix
+        # absA = absA1[2:end,2:end];
 
         Abar = zeros(Float64,nPN-1);
-        Abar[1] = gamma[2];
+        Abar[1] = sqrt(gamma[2]);
+        # Abar = AFull[1,2:end];
 
         dx = settings.dx;
         
@@ -142,9 +145,10 @@ struct solver
             Dcx[i,i] = 1/dx;
             Dcx[i+1,i] = -1/dx;
         end
+        Dcx[1,1], Dcx[end,end] = 0,0;
 
-        Dx = Tridiagonal(-ones(nxC-1)./2/dx, zeros(nxC), ones(nxC-1)./2/dx);
-        Dxx = Tridiagonal(ones(nxC-1)./2/dx, -ones(nxC)./dx, ones(nxC-1)./2/dx);
+        Dx = Tridiagonal(-ones(nxC-1)./2.0/dx, zeros(nxC), ones(nxC-1)./2.0/dx);
+        Dxx = Tridiagonal(ones(nxC-1)./2.0/dx, -ones(nxC)./dx, ones(nxC-1)./2.0/dx);
 
         new(x,xMid,settings,w,v,vp,vm,AFull,A,absA,Abar,Dp,Dm,Dc,Dcx,Dx,Dxx,rho1,g1,settings.sigmaA,settings.sigmaS);
     end
@@ -255,9 +259,9 @@ struct solver
     t = 0.0;
     dt = obj.settings.dt;
     Tend = obj.settings.Tend;
-    Nx = obj.settings.Nx;
-    NxC = obj.settings.NxC;
-    Nv = obj.settings.Nv;
+    # Nx = obj.settings.Nx;
+    # NxC = obj.settings.NxC;
+    # Nv = obj.settings.Nv;
     epsilon = obj.settings.epsilon;
 
     A = obj.A;
@@ -282,14 +286,17 @@ struct solver
 
     println("Running solver for the Pn solver for the full problem")
 
-    for k =ProgressBar(1:Nt)
-        g1 = g0 + dt.*(-Dx*g0*Transpose(A)./epsilon + Dxx*g0*Transpose(absA)./epsilon - Dc*rho0*Transpose(Abar) - obj.settings.sigmaA*g0);
+    for k = ProgressBar(1:Nt)
+        g1 .= g0 + dt.*(-Dx*g0*Transpose(A)./epsilon + Dxx*g0*Transpose(absA)./epsilon - Dc*rho0*Transpose(Abar)./epsilon^2 - obj.settings.sigmaA*g0);
         g1 .= g1./fac;
 
-        rho1 = rho0 + dt.*(-0.5*Abar[1]*Dcx*g1[:,1] - obj.settings.sigmaA*rho0);
+        rho1 .= rho0 + dt.*(-0.5*Dcx*g1*Abar - obj.settings.sigmaA*rho0);
 
         rho0 .= rho1;
         g0 .= g1;
+        
+        # rho1[1] = rho1[end-1]; rho1[end] = rho1[2];
+        # g1[1,:] = g1[end-1,:]; g1[end,:] = g1[2,:];
 
         t = t+dt;
     end
