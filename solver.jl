@@ -89,21 +89,23 @@ struct solver
 
         A = AFull[2:end,2:end]; # extractign reduced flux matrix for the micro equations
 
-        TFull = zeros(nPN+1,nPN+1) # allocate transformation matrix
-        mu1, w1 = gausslegendre(nPN+1)
-        for k = 1:nPN+1
-            P = collectPl(mu1[k],lmax = nPN);
-            for i = 1:nPN+1
-                TFull[i,k] = P[i-1]*sqrt(w1[k])/sqrt(gamma[i]);
-            end
-        end
-        T = TFull[2:end,:];
-        #AbsA = T*abs.(diagm([0.0; mu[2:end]]))*T';
-        absA = T*abs.(diagm(mu1))*T';
+        # TFull = zeros(nPN+1,nPN+1) # allocate transformation matrix
+        # mu1, w1 = gausslegendre(nPN+1)
+        # for k = 1:nPN+1
+        #     P = collectPl(mu1[k],lmax = nPN);
+        #     for i = 1:nPN+1
+        #         TFull[i,k] = P[i-1]*sqrt(w1[k])/sqrt(gamma[i]);
+        #     end
+        # end
+        # T = TFull[2:end,:];
+        # #AbsA = T*abs.(diagm([0.0; mu[2:end]]))*T';
+        # absA = T*abs.(diagm(mu1))*T';
 
-        # S = eigvals(A);
-        # V = eigvecs(A);
-        # absA = V*abs.(diagm(S))*inv(V);
+        S = eigvals(Matrix(AFull));
+        V = eigvecs(Matrix(AFull));
+        absA_1 = V*abs.(diagm(S))*inv(V);
+        absA = absA_1[2:end,2:end];
+        
 
         # Mabs = broadcast(abs,M);
         # absA = R*Diagonal(Mabs)*Transpose(R); # Computing and setting Roe's matrix
