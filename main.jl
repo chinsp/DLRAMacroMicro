@@ -9,6 +9,7 @@ include("settings.jl")
 include("solver.jl")
 
 using PyPlot
+using DelimitedFiles
 using BenchmarkTools
 
 close("all")
@@ -28,8 +29,21 @@ s.Tend = 0.2;
 # Solver = solver(s);
 # @time t, rho2 = solveLimitingDiff(Solver);
 
+# read reference solution
+v = readdlm("PlaneSourceRaw", ',')
+uEx = zeros(length(v));
+for i = 1:length(v)
+    if v[i] == ""
+        uEx[i] = 0.0;
+    else
+        uEx[i] = Float64(v[i])
+    end
+end
+x = collect(range(-1.5,1.5,length=(2*length(v)-1)));
+uEx = [uEx[end:-1:2];uEx]
 
 fig1, ax1 = subplots(figsize=(15, 12), dpi=100);
+ax1.plot(x,uEx, label="Exact");
 ax1.plot(Solver.x, rho1, label="Macro-Micro");
 # ax1.plot(Solver.x, rho2, label="Diffusion limit");
 ax1.legend();
