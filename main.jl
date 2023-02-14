@@ -11,28 +11,31 @@ include("solver.jl")
 using PyPlot
 using BenchmarkTools
 
-s = Settings(501,501,1e-6,"parabolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
+close("all")
+
+s = Settings(2002,500,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
+# The input parameter for setting the matrices for angular discretisation are the same for both Pn and Sn solver
 
 # run solver for various Settings
 
 s.Tend = 1.0;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
 Solver = solver(s);
-@time t, rho1, g1 = solveFullProblem(Solver);
+@time t, rho1, g1 = solveFullProblem_Pn(Solver);
 
-s.Tend = 1.0;
+s.Tend = 0.2;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
 # Solver = solver(s);
-@time t, rho2 = solveLimitingDiff(Solver);
+# @time t, rho2 = solveLimitingDiff(Solver);
 
 
-fig, ax = subplots(figsize=(15, 12), dpi=100);
-ax.plot(Solver.x, rho1, label="Macro-Micro");
-ax.plot(Solver.x, rho2, label="Diffusion limit");
-ax.legend();
-fig.canvas.draw();
+fig1, ax1 = subplots(figsize=(15, 12), dpi=100);
+ax1.plot(Solver.x, rho1, label="Macro-Micro");
+# ax1.plot(Solver.x, rho2, label="Diffusion limit");
+ax1.legend();
+fig1.canvas.draw();
 
-fig, ax = subplots(figsize=(15, 12), dpi=100);
-ax.semilogy(Solver.x, rho2-rho1, label="Error");
-ax.legend();
-fig.canvas.draw();
+# fig2, ax2 = subplots(figsize=(15, 12), dpi=100);
+# ax2.semilogy(Solver.x, rho2-rho1, label="Error");
+# ax2.legend();
+# fig2.canvas.draw();
