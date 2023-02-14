@@ -4,6 +4,7 @@ include("quadrature.jl")
 using ProgressMeter
 using ProgressBars
 using LinearAlgebra
+using FastGaussQuadrature, LegendrePolynomials
 
 struct solver
     # Spatial grid of cell vertices
@@ -70,33 +71,45 @@ struct solver
         end
 
         # Setting up the matrices for the Pn solver
-        nPN = settings.Nv + 1; # total number of Legendre polynomials used
-        gamma = zeros(nPN); # vector with norms of the Legendre polynomials
+        nPN = settings.Nv; # total number of Legendre polynomials used
+        gamma = zeros(nPN+1); # vector with norms of the Legendre polynomials
 
-        for i = 1:nPN
+        for i = 1:nPN+1
             gamma[i] = 2/(2*(i-1) + 1);
         end
 
-        A = zeros(Float64,nPN-1,nPN-1); # reduced Flux matrix for the micro equation
-        a_norm = zeros(Float64,nPN);
+        A = zeros(Float64,nPN,nPN); # reduced Flux matrix for the micro equation
+        a_norm = zeros(Float64,nPN+1);
 
-        for i = 1:nPN
+        for i = 1:nPN+1
             a_norm[i] = i/(sqrt((2i-1)*(2i+1)));
         end
 
-        AFull = Tridiagonal(a_norm[1:end-1],zeros(nPN),a_norm[1:end-1]); # Full flux matrix
+        AFull = Tridiagonal(a_norm[1:end-1],zeros(nPN+1),a_norm[1:end-1]); # Full flux matrix
 
         A = AFull[2:end,2:end]; # extractign reduced flux matrix for the micro equations
 
-        S = eigvals(A);
-        V = eigvecs(A);
-        absA = V*abs.(diagm(S))*inv(V);
+        TFull = zeros(nPN+1,nPN+1) # allocate transformation matrix
+        mu1, w1 = gausslegendre(nPN+1)
+        for k = 1:nPN+1
+            P = collectPl(mu1[k],lmax = nPN);
+            for i = 1:nPN+1
+                TFull[i,k] = P[i-1]*sqrt(w1[k])/sqrt(gamma[i]);
+            end
+        end
+        T = TFull[2:end,:];
+        #AbsA = T*abs.(diagm([0.0; mu[2:end]]))*T';
+        absA = T*abs.(diagm(mu1))*T';
+
+        # S = eigvals(A);
+        # V = eigvecs(A);
+        # absA = V*abs.(diagm(S))*inv(V);
 
         # Mabs = broadcast(abs,M);
         # absA = R*Diagonal(Mabs)*Transpose(R); # Computing and setting Roe's matrix
         # absA = absA1[2:end,2:end];
 
-        Abar = zeros(Float64,nPN-1);
+        Abar = zeros(Float64,nPN);
         Abar[1] = sqrt(gamma[2]);
         # Abar = AFull[1,2:end];
 
@@ -226,7 +239,7 @@ struct solver
     rho0,g0 = setupIC(obj);
     # println(rho0)
     ## pre=allocating memory for solution of macro and micro equation
-    g1 = obj.g1;
+    rho1 = obj.rho1;
 
     Nt = round(Tend/dt);
 
@@ -244,7 +257,7 @@ struct solver
             end
         end
 
-        rho1 = rho0 + dt .* y;
+        rho1 .= rho0 + dt .* y;
 
         rho0 = rho1;
         t = t + dt;
