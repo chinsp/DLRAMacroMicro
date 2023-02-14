@@ -57,11 +57,7 @@ mutable struct Settings
         # Setup temporal discretisation
         Tend = 5;
         cfl1 = 1.0; # CFL condition parabolic
-<<<<<<< HEAD
         cfl2 = 0.5; # CFL condition hyperbolic
-=======
-        cfl2 = 0.1; # CFL condition hyperbolic
->>>>>>> fc541698d1109c0ba26900cb19ae016a46ef7fcf
         # cflType = "parabolic"; # or "parabolic", "mixed"
 
         # epsilon = 10^-6;

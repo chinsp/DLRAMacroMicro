@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 __precompile__
 include("quadrature.jl")
 
@@ -203,4 +201,3 @@ struct solver
 
     return t, rho0;
  end
->>>>>>> fc541698d1109c0ba26900cb19ae016a46ef7fcf
