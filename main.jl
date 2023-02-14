@@ -11,7 +11,9 @@ include("solver.jl")
 using PyPlot
 using BenchmarkTools
 
-s = Settings(502,100,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
+close("all")
+
+s = Settings(2002,500,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
 # The input parameter for setting the matrices for angular discretisation are the same for both Pn and Sn solver
 
 # run solver for various Settings
