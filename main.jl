@@ -13,7 +13,7 @@ using BenchmarkTools
 
 close("all")
 
-s = Settings(2002,500,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
+s = Settings(2001,200,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
 # The input parameter for setting the matrices for angular discretisation are the same for both Pn and Sn solver
 
 # run solver for various Settings
@@ -21,7 +21,7 @@ s = Settings(2002,500,1.0,"hyperbolic"); # Give the number of discretisation poi
 s.Tend = 1.0;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
 Solver = solver(s);
-@time t, rho1, g1 = solveFullProblem_Pn(Solver);
+@time t, rho1, g1 = solveFullProblem_Sn(Solver);
 
 s.Tend = 0.2;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
