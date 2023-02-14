@@ -57,16 +57,20 @@ mutable struct Settings
         # Setup temporal discretisation
         Tend = 5;
         cfl1 = 1.0; # CFL condition parabolic
+<<<<<<< HEAD
         cfl2 = 0.5; # CFL condition hyperbolic
+=======
+        cfl2 = 0.1; # CFL condition hyperbolic
+>>>>>>> fc541698d1109c0ba26900cb19ae016a46ef7fcf
         # cflType = "parabolic"; # or "parabolic", "mixed"
 
         # epsilon = 10^-6;
 
         # Initial conditions
-        ICType = "LS" ;
+        ICType = "PS" ;
 
         # Problem 
-        problem = "LineSource";
+        problem = "PlaneSource";
 
         x = collect(range(a,stop = b,length = Nx));
         dx = x[2] - x[1];
@@ -88,7 +92,7 @@ mutable struct Settings
         end
 
         # Physical parameters
-        if problem == "LineSource"
+        if problem == "PlaneSource"
             sigmaS = 1.0;
             sigmaA = 0.0;
         end
@@ -103,7 +107,7 @@ end
 
 function ICrho(obj::Settings,x)
     y = zeros(size(x));
-    if obj.ICType == "LS"
+    if obj.ICType == "PS"
         s1 = 0.03;
         s2 = s1^2;
         floor = 1e-4;
@@ -119,7 +123,7 @@ end
 
 function ICg(obj::Settings,x)
     y = zeros(length(x),obj.Nv);
-    if obj.ICType == "LS"
+    if obj.ICType == "PS"
         y = y;
     elseif obj.ICType == "ManufacturedSolution"
         println("Not coded yet");
