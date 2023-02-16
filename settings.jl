@@ -48,7 +48,10 @@ mutable struct Settings
     ## Low-rank approximation parameters
     r::Int; # rank of approximation
 
-    function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic")
+    ## Testing parameters
+    SolverType::Int64;
+
+    function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic",SolverType::Int=3)
         # Setup spatial grid
         NxC = Nx - 1;
         a = -1.5; # Starting point for the spatial interval
@@ -97,7 +100,7 @@ mutable struct Settings
 
         r = 30;
 
-        new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r);
+        new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r,SolverType);
     end
 end
 

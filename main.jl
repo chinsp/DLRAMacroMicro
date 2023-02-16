@@ -14,7 +14,16 @@ using BenchmarkTools
 
 close("all")
 
-s = Settings(2001,200,1.0,"hyperbolic"); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
+## The solver type is a parameter that is beign introduced to control the stencil matrices that are being used in the solvers. 
+# Default is set to 3 i.e. Pn solver with macro-micro decomposition
+# 0 - Sn solver for kinetic equation without macro-micro decomposition
+# 1 - Sn solver for kinetic equation with macro-micro decomposition
+# 2 - Pn solver for kinetic equation without macro-micro decomposition
+# 3 - Pn solver for kinetic equation with macro-micro decomposition
+
+SolverType = 0; 
+
+s = Settings(2001,200,1.0,"hyperbolic",SolverType); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
 # The input parameter for setting the matrices for angular discretisation are the same for both Pn and Sn solver
 
 # run solver for various Settings
@@ -22,7 +31,8 @@ s = Settings(2001,200,1.0,"hyperbolic"); # Give the number of discretisation poi
 s.Tend = 1.0;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
 Solver = solver(s);
-@time t, rho1, g1 = solveFullProblem_Sn(Solver);
+# @time t, rho1, g1 = solveFullProblem_Sn(Solver);
+@time t, rho1, g1 = solveSN_kinetic(Solver);
 
 s.Tend = 0.2;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
