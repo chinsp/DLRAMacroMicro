@@ -213,9 +213,11 @@ function solveSN_kinetic(obj::solver)
     Iden = I(Nv);
 
     for k = ProgressBar(1:Nt)
-      g = g .- dt.*Dp*g*vp .- dt.*Dm*g*vm .+ obj.sigmaS
+      g = g .- dt.*Dp*g*vp .- dt.*Dm*g*vm .+ dt*obj.sigmaS.*g*(0.5*unitvec*Transpose(w)*v - Iden) - obj.sigmaA.*g;
+
+      t = t + dt;
     end
-    return t, g1;
+    return t, g;
 end
 
 #IMEX solver
