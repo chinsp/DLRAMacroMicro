@@ -206,8 +206,10 @@ function solveSN_kinetic(obj::solver)
     vm = obj.vm;
 
     rho0,g0 = setupIC(obj);
-    g = zeros(Nx,Nv);
-    g[:,1] = rho0;
+    g = zeros(Float64,Nx,Nv);
+    for i in 1:Nv
+        g[:,i] = rho0;
+    end
     # println(rho0)
     ## pre=allocating memory for solution of macro and micro equation
     # g1 = obj.g1;
@@ -220,7 +222,7 @@ function solveSN_kinetic(obj::solver)
     Iden = I(Nv);
 
     for k = ProgressBar(1:Nt)
-      g = g .- dt.*Dp*g*vp .- dt.*Dm*g*vm .+ dt*obj.sigmaS.*g*(0.5*unitvec*Transpose(w)*v - Iden) - obj.sigmaA.*g;
+      g .= g .- dt.*Dp*g*vp .- dt.*Dm*g*vm .+ dt*obj.sigmaS.*g*(0.5*v*w*Transpose(unitvec) - Iden) - obj.sigmaA.*g;
 
       t = t + dt;
     end
