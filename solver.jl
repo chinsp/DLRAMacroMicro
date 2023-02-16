@@ -118,8 +118,13 @@ struct solver
         dx = settings.dx;
         
         # Stencil matrices for the Sn sovler
-        Dp = zeros(Float64,nxC,nxC);
-        Dm = zeros(Float64,nxC,nxC);
+        if settings.SolverType == 0 || settings.SolverType == 2
+            Dp = zeros(Float64,nx,nx);
+            Dm = zeros(Float64,nx,nx);
+        elseif settings.SolverType == 1 || settings.SolverType == 3
+            Dp = zeros(Float64,nxC,nxC);
+            Dm = zeros(Float64,nxC,nxC);
+        end
 
         # Stencil matrices for the Pn solver
         Dx = zeros(Float64,nxC,nxC);
@@ -131,7 +136,9 @@ struct solver
         
         # Currently running a second order upwind scheme
         
-        for i = 1:nxC
+        m = size(Dp)[1]
+
+        for i = 1:m
             Dp[i,i] = 3/(2*dx);
             if i-1 > 0
                 Dp[i,i-1] = -4/(2*dx);
@@ -141,12 +148,12 @@ struct solver
             end
         end
 
-        for i = 1:nxC
+        for i = 1:m
             Dm[i,i] = -3/(2*dx);
-            if i+1 < nxC+1
+            if i+1 < m+1
                 Dm[i,i+1] = 4/(2*dx);
             end
-            if i+2 < nxC+1
+            if i+2 < m+1
                 Dm[i,i+2] = -1/(2*dx);
             end
         end
