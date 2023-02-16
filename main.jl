@@ -23,7 +23,7 @@ close("all")
 
 SolverType = 0; 
 
-s = Settings(2001,200,1.0,"hyperbolic",SolverType); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
+s = Settings(1000,200,1.0,"hyperbolic",SolverType); # Give the number of discretisation points for spatial domain and velocity domain as input i.e., Nx and Nv
 # The input parameter for setting the matrices for angular discretisation are the same for both Pn and Sn solver
 
 # run solver for various Settings
@@ -31,10 +31,17 @@ s = Settings(2001,200,1.0,"hyperbolic",SolverType); # Give the number of discret
 s.Tend = 1.0;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
 Solver = solver(s);
-# @time t, rho1, g1 = solveFullProblem_Sn(Solver);
-@time t, rho1, g1 = solveSN_kinetic(Solver);
 
-s.Tend = 0.2;
+@time t, g_SN = solveSN_kinetic(Solver);
+
+SolverType = 1; 
+
+s1 = Settings(1000,200,1.0,"hyperbolic",SolverType);
+s1.Tend = 1.0;
+Solver = solver(s1);
+@time t, rho1, g1 = solveFullProblem_Sn(Solver);
+
+# s.Tend = 0.2;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
 # Solver = solver(s);
 # @time t, rho2 = solveLimitingDiff(Solver);
@@ -54,8 +61,10 @@ uEx = [uEx[end:-1:2];uEx]
 
 fig1, ax1 = subplots(figsize=(15, 12), dpi=100);
 ax1.plot(x,uEx, label="Exact");
-ax1.plot(Solver.x, rho1, label="Macro-Micro");
+ax1.plot(Solver.x, 0.5*g_SN*Solver.w, label="SN w/o Macro-Micro");
+ax1.plot(Solver.x, rho1, label="SN with MM");
 # ax1.plot(Solver.x, rho2, label="Diffusion limit");
+ax1.set_title("First order upwind scheme, CFL = 0.5")
 ax1.legend();
 fig1.canvas.draw();
 
