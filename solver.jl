@@ -138,23 +138,37 @@ struct solver
         
         m = size(Dp)[1]
 
+        # for i = 1:m
+        #     Dp[i,i] = 3/(2*dx);
+        #     if i-1 > 0
+        #         Dp[i,i-1] = -4/(2*dx);
+        #     end
+        #     if i-2 > 0
+        #         Dp[i,i-2] = 1/(2*dx);
+        #     end
+        # end
+
         for i = 1:m
-            Dp[i,i] = 3/(2*dx);
-            if i-1 > 0
-                Dp[i,i-1] = -4/(2*dx);
-            end
-            if i-2 > 0
-                Dp[i,i-2] = 1/(2*dx);
+            Dp[i,i] = 1/dx;
+            if i-1>0
+                Dp[i,i-1] = -1/dx;
             end
         end
 
+        # for i = 1:m
+        #     Dm[i,i] = -3/(2*dx);
+        #     if i+1 < m+1
+        #         Dm[i,i+1] = 4/(2*dx);
+        #     end
+        #     if i+2 < m+1
+        #         Dm[i,i+2] = -1/(2*dx);
+        #     end
+        # end
+
         for i = 1:m
-            Dm[i,i] = -3/(2*dx);
-            if i+1 < m+1
-                Dm[i,i+1] = 4/(2*dx);
-            end
-            if i+2 < m+1
-                Dm[i,i+2] = -1/(2*dx);
+            Dm[i,i] = -1/dx;
+            if i+1<m
+                Dm[i,i+1] = 1/dx;
             end
         end
 
@@ -222,7 +236,7 @@ function solveSN_kinetic(obj::solver)
     Iden = I(Nv);
 
     for k = ProgressBar(1:Nt)
-      g .= g .- dt.*Dp*g*vp .- dt.*Dm*g*vm .+ dt*obj.sigmaS.*g*(0.5*v*w*Transpose(unitvec) - Iden) - obj.sigmaA.*g;
+      g .= g .- dt.*Dp*g*vp .- dt.*Dm*g*vm .+ dt*obj.sigmaS.*g*(0.5*w*Transpose(unitvec) - Iden) - obj.sigmaA.*g;
 
       t = t + dt;
     end
