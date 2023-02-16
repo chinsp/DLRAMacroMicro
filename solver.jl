@@ -177,13 +177,52 @@ struct solver
     return rho0,g0;
  end
 
+# Sn solver for the kinetic equation witout macro-micr decomposition
+function solveSN_kinetic(obj::solver)
+    t = 0.0;
+    dt = obj.settings.dt;
+    Tend = obj.settings.Tend;
+    epsilon = obj.settings.epsilon;
+    Nx = obj.settings.Nx
+    Nv = obj.settings.Nv;
+    epsilon = obj.settings.epsilon;
+    epsilon = 1.0; # This solver is only for the kinetic equation thus we override the externally set epsilon
+
+    Dp = obj.Dp;
+    Dm = obj.Dm;
+    Dc = obj.Dc;
+    Dcx = obj.Dcx;
+
+    w = obj.w;
+    v = obj.v;
+    vp = obj.vp;
+    vm = obj.vm;
+
+    rho0,g0 = setupIC(obj);
+    g = zeros(Nx,Nv);
+    g[:,1] = rho0;
+    # println(rho0)
+    ## pre=allocating memory for solution of macro and micro equation
+    # g1 = obj.g1;
+    # rho1 = obj.rho1;
+
+    Nt = round(Tend/dt); # Compute the number of steps
+    dt = Tend/Nt; # Find the step size 
+    
+    unitvec = ones(Nv);
+    Iden = I(Nv);
+
+    for k = ProgressBar(1:Nt)
+      g = g .- dt.*Dp*g*vp .- dt.*Dm*g*vm .+ obj.sigmaS
+    end
+    return t, g1;
+end
+
 #IMEX solver
  function solveFullProblem_Sn(obj::solver)
     t = 0.0;
     dt = obj.settings.dt;
     Tend = obj.settings.Tend;
-    Nx = obj.settings.Nx;
-    NxC = obj.settings.NxC;
     Nv = obj.settings.Nv;
     epsilon = obj.settings.epsilon;
 
@@ -209,16 +248,17 @@ struct solver
     unitvec = ones(Nv);
     Iden = I(Nv);
 
+    fac = 1 + dt*obj.settings.sigmaS/epsilon^2;
+
     println("Running solver for the Sn solver for the full problem")
     
     for k = ProgressBar(1:Nt)
-        fac = epsilon^2/(epsilon^2 + obj.sigmaS*dt);
         RHS = (Dc * rho0 * Transpose(unitvec) * v)/(epsilon^2);
         RHS =  RHS .+ (Dp * g0 * vp + Dm * g0 * vm)*(Iden - 0.5 * w * Transpose(unitvec))/epsilon;
         RHS = RHS .+ obj.sigmaA .* g0;
         g1 =  g0 .- dt*RHS; 
         
-        g1 =  fac * g1;
+        g1 =  g1./fac;
         
         rho1 = rho0 - dt *(0.5 * Dcx * g1 * v * w) ;
 
