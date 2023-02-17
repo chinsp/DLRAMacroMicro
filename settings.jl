@@ -56,8 +56,8 @@ mutable struct Settings
     function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic",SolverType::Int=3)
         # Setup spatial grid
         NxC = Nx - 1;
-        a = -1; # Starting point for the spatial interval
-        b = 1; # End point for the spatial interval
+        a = -1.0; # Starting point for the spatial interval
+        b = 1.0; # End point for the spatial interval
 
         # Setup temporal discretisation
         Tend = 5;
