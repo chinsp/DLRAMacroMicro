@@ -291,7 +291,7 @@ end
         
         rho1 = rho0 - dt *(0.5 * Dcx * g1 * v * w .- Source_micro(obj.settings,t,obj.settings.x)) ;
 
-        rho1[1],rho1[end] = 0,0;
+        # rho1[1],rho1[end] = 0,0;
 
         g0 = g1;
         rho0 = rho1;
