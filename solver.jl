@@ -240,7 +240,7 @@ function solveSN_kinetic(obj::solver)
     Iden = I(Nv);
 
     for k = ProgressBar(1:Nt)
-      g .= g .- dt.*Dp*g*vp .- dt.*Dm*g*vm .+ dt*obj.sigmaS.*g*(0.5*w*Transpose(unitvec) - Iden) - obj.sigmaA.*g;
+      g .= g .- dt.*Dp*g*vp .- dt.*Dm*g*vm .+ dt*obj.sigmaS.*g*(0.5*w*Transpose(unitvec) - Iden) - dt*obj.sigmaA.*g;
 
       t = t + dt;
     end
@@ -284,12 +284,12 @@ end
     for k = ProgressBar(1:Nt)
         RHS = (Dc * rho0 * Transpose(unitvec) * v)/(epsilon^2);
         RHS =  RHS .+ (Dp * g0 * vp + Dm * g0 * vm)*(Iden - 0.5 * w * Transpose(unitvec))/epsilon;
-        RHS = RHS .+ obj.sigmaA .* g0;
+        RHS = RHS .+ obj.sigmaA .* g0 .- Source_macro(obj.settings,t,obj.settings.xMid,obj.v)./epsilon;
         g1 =  g0 .- dt*RHS; 
         
         g1 =  g1./fac;
         
-        rho1 = rho0 - dt *(0.5 * Dcx * g1 * v * w) ;
+        rho1 = rho0 - dt *(0.5 * Dcx * g1 * v * w .- Source_micro(obj.settings,t,obj.settings.x)) ;
 
         rho1[1],rho1[end] = 0,0;
 
