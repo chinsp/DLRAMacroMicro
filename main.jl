@@ -32,7 +32,7 @@ s.Tend = 1.0;
 # s.dt = s.dt/10; # For the kinetic regime smaller step size than the one selected is required
 Solver = solver(s);
 
-@time t, g_SN = solveSN_kinetic(Solver);
+# @time t, g_SN = solveSN_kinetic(Solver);
 
 SolverType = 1; 
 
@@ -60,8 +60,9 @@ x = collect(range(-1.5,1.5,length=(2*length(v)-1)));
 uEx = [uEx[end:-1:2];uEx]
 
 fig1, ax1 = subplots(figsize=(15, 12), dpi=100);
-ax1.plot(x,uEx, label="Exact");
-ax1.plot(Solver.x, 0.5*g_SN*Solver.w, label="SN w/o Macro-Micro");
+# ax1.plot(x,uEx, label="Exact");
+ax1.plot(s1.x,Manufactured1D_rho(s1,s1.Tend,s1.x), label="Exact");
+# ax1.plot(Solver.x, 0.5*g_SN*Solver.w, label="SN w/o Macro-Micro");
 ax1.plot(Solver.x, rho1, label="SN with MM");
 # ax1.plot(Solver.x, rho2, label="Diffusion limit");
 # ax1.set_title("First order upwind scheme, CFL = 0.25")
