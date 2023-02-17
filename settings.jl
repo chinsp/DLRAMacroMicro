@@ -68,10 +68,10 @@ mutable struct Settings
         # epsilon = 10^-6;
 
         # Initial conditions
-        ICType = "LS" ;
+        ICType = "MS" ;
 
         # Problem 
-        problem = "LineSource";
+        problem = "ManufacturedSolution";
 
         x = collect(range(a,stop = b,length = Nx));
         dx = x[2] - x[1];
@@ -94,6 +94,9 @@ mutable struct Settings
 
         # Physical parameters
         if problem == "LineSource"
+            sigmaS = 1.0;
+            sigmaA = 0.0;
+        elseif problem == "ManufacturedSolution"
             sigmaS = 1.0;
             sigmaA = 0.0;
         end
@@ -121,18 +124,30 @@ function ICrho(obj::Settings,x)
         for j in eachindex(y)
             y[j] = max(floor,1.0/(sqrt(2*pi)*s1) *exp(-((x[j]-x0)*(x[j]-x0))/2.0/s2));
         end
-    elseif obj.ICType == "ManufacturedSolution"
-        println("Not coded yet")
+    elseif obj.ICType == "MS"
+        for j in eachindex(y)
+            y[j] = sin(pi*x[j]);
+        end
     end
     return y;
 end
 
-function ICg(obj::Settings,x)
+function ICg(obj::Settings,x,v)
     y = zeros(length(x),obj.Nv);
+    m = length(x);
     if obj.ICType == "LS"
         y = y;
-    elseif obj.ICType == "ManufacturedSolution"
-        println("Not coded yet");
+    elseif obj.ICType == "MS"
+        for i = 1:m
+            for j = 1:obj.Nv
+                y[i,j] = v[j,j]*sin(pi*x[i]);
+            end
+        end
     end
+    return y;
+end
+
+function Manufactured1D_rho(obj::Settings,t,x)
+    y = exp(-t)*sin.(pi*x);
     return y;
 end
