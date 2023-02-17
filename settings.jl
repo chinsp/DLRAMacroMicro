@@ -48,8 +48,10 @@ mutable struct Settings
     ## Low-rank approximation parameters
     r::Int; # rank of approximation
 
-    ## Testing parameters
+    ## Parameters for setting stencil matrices for spatial derivaties
     SolverType::Int64;
+
+    SpatDisc::String;
 
     function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic",SolverType::Int=3)
         # Setup spatial grid
@@ -100,7 +102,12 @@ mutable struct Settings
 
         r = 30;
 
-        new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r,SolverType);
+        ## A string variable to describe the type of discretisation used for the spatial derivative
+        # FoUw - First-order Upwind scheme
+        # SoUw - Second-order Upwind scheme
+        SpatDisc = "FoUw";
+
+        new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r,SolverType,SpatDisc);
     end
 end
 
