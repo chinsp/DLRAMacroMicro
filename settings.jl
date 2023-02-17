@@ -56,22 +56,22 @@ mutable struct Settings
     function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic",SolverType::Int=3)
         # Setup spatial grid
         NxC = Nx - 1;
-        a = -1.5; # Starting point for the spatial interval
-        b = 1.5; # End point for the spatial interval
+        a = -1; # Starting point for the spatial interval
+        b = 1; # End point for the spatial interval
 
         # Setup temporal discretisation
         Tend = 5;
         cfl1 = 1.0; # CFL condition parabolic
-        cfl2 = 0.25; # CFL condition hyperbolic
+        cfl2 = 0.5; # CFL condition hyperbolic
         # cflType = "parabolic"; # or "parabolic", "mixed"
 
         # epsilon = 10^-6;
 
         # Initial conditions
-        ICType = "MS" ;
+        ICType = "MS" ; # Options "LS" or "MS"
 
         # Problem 
-        problem = "ManufacturedSolution";
+        problem = "ManufacturedSolution"; #Options are "LineSource" or "ManufacturedSolution"
 
         x = collect(range(a,stop = b,length = Nx));
         dx = x[2] - x[1];
@@ -108,7 +108,7 @@ mutable struct Settings
         ## A string variable to describe the type of discretisation used for the spatial derivative
         # FoUw - First-order Upwind scheme
         # SoUw - Second-order Upwind scheme
-        SpatDisc = "SoUw";
+        SpatDisc = "FoUw";
 
         new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r,SolverType,SpatDisc);
     end
