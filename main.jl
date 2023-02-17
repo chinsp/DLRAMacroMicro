@@ -64,7 +64,7 @@ ax1.plot(x,uEx, label="Exact");
 ax1.plot(Solver.x, 0.5*g_SN*Solver.w, label="SN w/o Macro-Micro");
 ax1.plot(Solver.x, rho1, label="SN with MM");
 # ax1.plot(Solver.x, rho2, label="Diffusion limit");
-ax1.set_title("First order upwind scheme, CFL = 0.5")
+# ax1.set_title("First order upwind scheme, CFL = 0.25")
 ax1.legend();
 fig1.canvas.draw();
 

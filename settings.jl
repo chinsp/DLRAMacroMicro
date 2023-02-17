@@ -62,7 +62,7 @@ mutable struct Settings
         # Setup temporal discretisation
         Tend = 5;
         cfl1 = 1.0; # CFL condition parabolic
-        cfl2 = 0.1; # CFL condition hyperbolic
+        cfl2 = 0.25; # CFL condition hyperbolic
         # cflType = "parabolic"; # or "parabolic", "mixed"
 
         # epsilon = 10^-6;
@@ -105,7 +105,7 @@ mutable struct Settings
         ## A string variable to describe the type of discretisation used for the spatial derivative
         # FoUw - First-order Upwind scheme
         # SoUw - Second-order Upwind scheme
-        SpatDisc = "FoUw";
+        SpatDisc = "SoUw";
 
         new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r,SolverType,SpatDisc);
     end
