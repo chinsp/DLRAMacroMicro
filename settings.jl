@@ -147,27 +147,31 @@ function ICg(obj::Settings,x,v)
     return y;
 end
 
-function Manufactured1D_rho(obj::Settings,t,x)
-    y = exp(-t)*sin.(pi*x);
-    return y;
-end
-
-function Manufactured1D_source_macro(obj::Settings,t,x,v)
+function Source_macro(obj::Settings,t,x,v)
     m = length(x);
     y = zeros(m,obj.Nv);
-    for i = 1:m
-        for j = 1:obj.Nv
-            y[i,j] = exp(-t)*sin(pi*x[i])*v[j,j]*(1/obj.epsilon - obj.epsilon) + pi*exp(-t)*cos(pi*x[i])*(v[j,j]/obj.epsilon + v[j,j]^2 - 1/3);
+    if obj.ICType == "MS"    
+        for i = 1:m
+            for j = 1:obj.Nv
+                y[i,j] = exp(-t)*sin(pi*x[i])*v[j,j]*(1/obj.epsilon - obj.epsilon) + pi*exp(-t)*cos(pi*x[i])*(v[j,j]/obj.epsilon + v[j,j]^2 - 1/3);
+            end
         end
     end
     return y;
 end
 
-function Manufactured1D_source_micro(obj::Settings,t,x)
+function Source_micro(obj::Settings,t,x)
     m = length(x);
     y = zeros(m);
-    for i = 1:m
-        y[i] = exp(-t)*(pi*cos(pi*x[i])/3 - sin(pi*x[i]));
+    if obj.ICType == "MS"
+        for i = 1:m
+            y[i] = exp(-t)*(pi*cos(pi*x[i])/3 - sin(pi*x[i]));
+        end
     end
+    return y;
+end
+
+function Manufactured1D_rho(obj::Settings,t,x)
+    y = exp(-t)*sin.(pi*x);
     return y;
 end
