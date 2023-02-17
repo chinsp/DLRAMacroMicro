@@ -198,7 +198,7 @@ struct solver
     g0 = zeros(obj.settings.NxC,obj.settings.Nv);
     rho0 = zeros(obj.settings.Nx);
     rho0 = ICrho(obj.settings,obj.x);
-    g0 = ICg(obj.settings,obj.xMid);
+    g0 = ICg(obj.settings,obj.xMid,obj.v);
     return rho0,g0;
  end
 
