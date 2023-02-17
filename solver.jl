@@ -117,7 +117,7 @@ struct solver
 
         dx = settings.dx;
         
-        # Stencil matrices for the Sn sovler
+        # Stencil matrices for the Sn or Pn sovler based on whether the MM decompositon is used
         if settings.SolverType == 0 || settings.SolverType == 2
             Dp = zeros(Float64,nx,nx);
             Dm = zeros(Float64,nx,nx);
@@ -138,39 +138,43 @@ struct solver
         
         m = size(Dp)[1]
 
-        # for i = 1:m
-        #     Dp[i,i] = 3/(2*dx);
-        #     if i-1 > 0
-        #         Dp[i,i-1] = -4/(2*dx);
-        #     end
-        #     if i-2 > 0
-        #         Dp[i,i-2] = 1/(2*dx);
-        #     end
-        # end
+        if settings.SpatDisc == "FoUw"
+            for i = 1:m
+                Dp[i,i] = 1/dx;
+                if i-1>0
+                    Dp[i,i-1] = -1/dx;
+                end
+            end
 
-        for i = 1:m
-            Dp[i,i] = 1/dx;
-            if i-1>0
-                Dp[i,i-1] = -1/dx;
+            for i = 1:m
+                Dm[i,i] = -1/dx;
+                if i+1<m
+                    Dm[i,i+1] = 1/dx;
+                end
+            end
+        elseif settings.SpatDisc == "SoUw"
+            for i = 1:m
+                Dp[i,i] = 3/(2*dx);
+                if i-1 > 0
+                    Dp[i,i-1] = -4/(2*dx);
+                end
+                if i-2 > 0
+                    Dp[i,i-2] = 1/(2*dx);
+                end
+            end
+            
+            for i = 1:m
+                Dm[i,i] = -3/(2*dx);
+                if i+1 < m+1
+                    Dm[i,i+1] = 4/(2*dx);
+                end
+                if i+2 < m+1
+                    Dm[i,i+2] = -1/(2*dx);
+                end
             end
         end
 
-        # for i = 1:m
-        #     Dm[i,i] = -3/(2*dx);
-        #     if i+1 < m+1
-        #         Dm[i,i+1] = 4/(2*dx);
-        #     end
-        #     if i+2 < m+1
-        #         Dm[i,i+2] = -1/(2*dx);
-        #     end
-        # end
 
-        for i = 1:m
-            Dm[i,i] = -1/dx;
-            if i+1<m
-                Dm[i,i+1] = 1/dx;
-            end
-        end
 
         for i = 1:nxC
             Dc[i,i] = -1/dx;
