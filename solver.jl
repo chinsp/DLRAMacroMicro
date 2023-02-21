@@ -238,7 +238,8 @@ function solveSN_kinetic(obj::solver)
     
     unitvec = ones(Nv);
     Iden = I(Nv);
-
+    
+    println("Sn solver for the full kinetic problem in hyperbolic regime")
     for k = ProgressBar(1:Nt)
       g .= g .- dt.*Dp*g*vp .- dt.*Dm*g*vm .+ dt*obj.sigmaS.*g*(0.5*w*Transpose(unitvec) - Iden) - dt*obj.sigmaA.*g;
 
@@ -279,7 +280,7 @@ end
 
     fac = 1 + dt*obj.settings.sigmaS/epsilon^2;
 
-    println("Running solver for the Sn solver for the full problem")
+    println("Running solver for the Sn solver for the full problem with MM decomposition")
     
     for k = ProgressBar(1:Nt)
         RHS = (Dc * rho0 * Transpose(unitvec) * v)/(epsilon^2);
@@ -368,7 +369,7 @@ end
 
     fac = 1 + obj.settings.sigmaS*dt/epsilon^2;
 
-    println("Running solver for the Pn solver for the full problem")
+    println("Running solver for the Pn solver for the full problem with MM decomposition")
 
     for k = ProgressBar(1:Nt)
         g1 .= g0 + dt.*(-Dx*g0*Transpose(A)./epsilon + Dxx*g0*Transpose(absA)./epsilon - Dc*rho0*Transpose(Abar)./epsilon^2 - obj.settings.sigmaA*g0);
