@@ -387,3 +387,79 @@ end
     return t,rho1,g1;
 
 end
+
+
+function solveMMDLRA_Sn(obj::solver)
+    t = 0.0;
+    dt = obj.settings.dt;
+    Tend = obj.settings.Tend;
+    Nv = obj.settings.Nv;
+    NxC = obj.settings.NxC;
+    epsilon = obj.settings.epsilon;
+    r = obj.settings.r;
+
+    Dp = obj.Dp;
+    Dm = obj.Dm;
+    Dc = obj.Dc;
+    Dcx = obj.Dcx;
+
+    w = obj.w;
+    v = obj.v;
+    vp = obj.vp;
+    vm = obj.vm;
+
+    rho0,g0 = setupIC(obj);
+
+    X,s,V = svd(g0);
+    X = X[:,1:r];
+    V = V[:,1:r];
+    S = diagm(s[1:r]);
+
+    # println(rho0)
+    ## pre=allocating memory for solution of macro and micro equation
+    g1 = obj.g1;
+    rho1 = obj.rho1;
+
+    Nt = round(Tend/dt); # Compute the number of steps
+    dt = Tend/Nt; # Find the step size 
+    
+    unitvec = ones(Nv);
+    Iden = I(Nv);
+
+    Sigma_S = obj.settings.sigmaS.*I(NxC);
+    Sigma_A = obj.settings.sigmaA.*I(NxC);
+    Sigma_AF = obj.settings.sigmaA.*I(Nx);
+
+    fac = 1 + dt*obj.settings.sigmaS/epsilon^2;
+
+    println("Running solver for the Sn solver for the full problem")
+
+    for k = 1:Nt
+        # Solving the micro equation in time using DLRA
+        K = X*S;
+        K .= K .- dt.*(Dp*K*Transpose(V)*vp .+ Dm*K*Transpose(V)*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V./epsilon .- dt.*Dc*rho0*Transpose(unitvec)*v*V./epsilon^2 .- dt.*Sigma_S*K./epsilon^2  .- dt.*Sigma_A*K;
+
+        X1,R1 = qr(K);
+        X1 = Matrix(X1)[:,1:r];
+        M = Transpose(X1)*X;
+        X .= X1;
+
+        Lt = V*Transpose(S);
+        Lt .= Lt .-dt.*Transpose(X)*(Dp*X*Lt*vp .+ Dm*X*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))./epsilon .- dt.Transpose(X)*Dc*rho0*Transpose(unitvec)*v./epsilon^2 .- dt.Transpose(X)*Sigma_S*X*Lt./epsilon^2  .- dt.*Transpose(X)*Sigma_A*X*Lt;
+
+        V1,R2 = qr(Transpose(Lt));
+        V1 = Matrix(V1)[:,1:r];
+        N = Transpose(V1)*V
+        V .= V1;
+
+        S .= M*S*Transpose(N);
+        S .= S .-dt.*Transpose(X)*(Dp*X*Lt*vp .+ Dm*X*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V./epsilon .- dt.Transpose(X)*Dc*rho0*Transpose(unitvec)*v*V./epsilon^2 .- dt.Transpose(X)*Sigma_S*X*S./epsilon^2  .- dt.*Transpose(X)*Sigma_A*X*S;
+
+        # Solving the macro equation 
+
+        rho1 .= rho0 .+ dt.*Dcx*X*S*Transpose(V)*v*w .- Sigma_AF*rho0;
+
+        rho0 = rho1;
+        t = t + dt;
+    end
+end
