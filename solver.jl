@@ -435,7 +435,7 @@ function solveMMDLRA_Sn(obj::solver)
 
     println("Running solver for the Sn solver for the full problem")
 
-    for k = 1:Nt
+    for k = ProgressBar(1:Nt)
         # Solving the micro equation in time using DLRA
         K = X*S;
         K .= K .- dt.*(Dp*K*Transpose(V)*vp .+ Dm*K*Transpose(V)*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V./epsilon .- dt.*Dc*rho0*Transpose(unitvec)*v*V./epsilon^2 .- dt.*Sigma_S*K./epsilon^2  .- dt.*Sigma_A*K;
