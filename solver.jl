@@ -395,6 +395,7 @@ function solveMMDLRA_Sn(obj::solver)
     Tend = obj.settings.Tend;
     Nv = obj.settings.Nv;
     NxC = obj.settings.NxC;
+    Nx = obj.settings.Nx;
     epsilon = obj.settings.epsilon;
     r = obj.settings.r;
 
