@@ -433,7 +433,7 @@ function solveMMDLRA_Sn(obj::solver)
 
     fac = 1 + dt*obj.settings.sigmaS/epsilon^2;
 
-    println("Running solver for the Sn solver for the full problem")
+    println("Running DLRA solver for the Sn problem with UI w/o IMEX")
 
     for k = ProgressBar(1:Nt)
         # Solving the micro equation in time using DLRA
@@ -512,7 +512,7 @@ function solveMMDLRA_SnIMEX(obj::solver)
 
     FacK = inv(I(NxC) + dt.*Sigma_S./epsilon^2);
 
-    println("Running solver for the Sn solver for the full problem")
+    println("Running DLRA solver for the Sn problem with UI with IMEX")
 
     for k = ProgressBar(1:Nt)
         # Solving the micro equation in time using DLRA
