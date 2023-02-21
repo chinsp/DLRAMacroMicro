@@ -445,8 +445,8 @@ function solveMMDLRA_Sn(obj::solver)
         M = Transpose(X1)*X;
         X .= X1;
 
-        Lt = V*Transpose(S);
-        Lt .= Lt .-dt.*Transpose(X)*(Dp*X*Lt*vp .+ Dm*X*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))./epsilon .- dt.Transpose(X)*Dc*rho0*Transpose(unitvec)*v./epsilon^2 .- dt.Transpose(X)*Sigma_S*X*Lt./epsilon^2  .- dt.*Transpose(X)*Sigma_A*X*Lt;
+        Lt = S*Transpose(V);
+        Lt .= Lt .- dt.*Transpose(X)*(Dp*X*Lt*vp .+ Dm*X*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))./epsilon .- dt.*Transpose(X)*Dc*rho0*Transpose(unitvec)*v./epsilon^2 .- dt.*Transpose(X)*Sigma_S*X*Lt./epsilon^2  .- dt.*Transpose(X)*Sigma_A*X*Lt;
 
         V1,R2 = qr(Transpose(Lt));
         V1 = Matrix(V1)[:,1:r];
@@ -454,7 +454,7 @@ function solveMMDLRA_Sn(obj::solver)
         V .= V1;
 
         S .= M*S*Transpose(N);
-        S .= S .-dt.*Transpose(X)*(Dp*X*Lt*vp .+ Dm*X*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V./epsilon .- dt.Transpose(X)*Dc*rho0*Transpose(unitvec)*v*V./epsilon^2 .- dt.Transpose(X)*Sigma_S*X*S./epsilon^2  .- dt.*Transpose(X)*Sigma_A*X*S;
+        S .= S .-dt.*Transpose(X)*(Dp*X*Lt*vp .+ Dm*X*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V./epsilon .- dt.*Transpose(X)*Dc*rho0*Transpose(unitvec)*v*V./epsilon^2 .- dt.*Transpose(X)*Sigma_S*X*S./epsilon^2  .- dt.*Transpose(X)*Sigma_A*X*S;
 
         # Solving the macro equation 
 
