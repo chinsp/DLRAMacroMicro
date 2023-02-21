@@ -454,13 +454,14 @@ function solveMMDLRA_Sn(obj::solver)
         V .= V1;
 
         S .= M*S*Transpose(N);
-        S .= S .-dt.*Transpose(X)*(Dp*X*Lt*vp .+ Dm*X*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V./epsilon .- dt.*Transpose(X)*Dc*rho0*Transpose(unitvec)*v*V./epsilon^2 .- dt.*Transpose(X)*Sigma_S*X*S./epsilon^2  .- dt.*Transpose(X)*Sigma_A*X*S;
+        S .= S .- dt.*Transpose(X)*(Dp*X*Lt*vp .+ Dm*X*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V./epsilon .- dt.*Transpose(X)*Dc*rho0*Transpose(unitvec)*v*V./epsilon^2 .- dt.*Transpose(X)*Sigma_S*X*S./epsilon^2  .- dt.*Transpose(X)*Sigma_A*X*S;
 
         # Solving the macro equation 
 
-        rho1 .= rho0 .+ dt.*Dcx*X*S*Transpose(V)*v*w .- Sigma_AF*rho0;
+        rho1 .= rho0 .- 0.5*dt.*Dcx*X*S*Transpose(V)*v*w .- Sigma_AF*rho0;
 
         rho0 = rho1;
         t = t + dt;
     end
+    return t, rho1, X*S*Transpose(V);
 end
