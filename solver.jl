@@ -117,9 +117,14 @@ struct solver
 
         dx = settings.dx;
         
-        # Stencil matrices for the Sn sovler
-        Dp = zeros(Float64,nxC,nxC);
-        Dm = zeros(Float64,nxC,nxC);
+        # Stencil matrices for the Sn or Pn sovler based on whether the MM decompositon is used
+        if settings.SolverType == 0 || settings.SolverType == 2
+            Dp = zeros(Float64,nx,nx);
+            Dm = zeros(Float64,nx,nx);
+        elseif settings.SolverType == 1 || settings.SolverType == 3
+            Dp = zeros(Float64,nxC,nxC);
+            Dm = zeros(Float64,nxC,nxC);
+        end
 
         # Stencil matrices for the Pn solver
         Dx = zeros(Float64,nxC,nxC);
@@ -131,25 +136,45 @@ struct solver
         
         # Currently running a second order upwind scheme
         
-        for i = 1:nxC
-            Dp[i,i] = 3/(2*dx);
-            if i-1 > 0
-                Dp[i,i-1] = -4/(2*dx);
+        m = size(Dp)[1]
+
+        if settings.SpatDisc == "FoUw"
+            for i = 1:m
+                Dp[i,i] = 1/dx;
+                if i-1>0
+                    Dp[i,i-1] = -1/dx;
+                end
             end
-            if i-2 > 0
-                Dp[i,i-2] = 1/(2*dx);
+
+            for i = 1:m
+                Dm[i,i] = -1/dx;
+                if i+1<m
+                    Dm[i,i+1] = 1/dx;
+                end
+            end
+        elseif settings.SpatDisc == "SoUw"
+            for i = 1:m
+                Dp[i,i] = 3/(2*dx);
+                if i-1 > 0
+                    Dp[i,i-1] = -4/(2*dx);
+                end
+                if i-2 > 0
+                    Dp[i,i-2] = 1/(2*dx);
+                end
+            end
+            
+            for i = 1:m
+                Dm[i,i] = -3/(2*dx);
+                if i+1 < m+1
+                    Dm[i,i+1] = 4/(2*dx);
+                end
+                if i+2 < m+1
+                    Dm[i,i+2] = -1/(2*dx);
+                end
             end
         end
 
-        for i = 1:nxC
-            Dm[i,i] = -3/(2*dx);
-            if i+1 < nxC+1
-                Dm[i,i+1] = 4/(2*dx);
-            end
-            if i+2 < nxC+1
-                Dm[i,i+2] = -1/(2*dx);
-            end
-        end
+
 
         for i = 1:nxC
             Dc[i,i] = -1/dx;
@@ -173,17 +198,60 @@ struct solver
     g0 = zeros(obj.settings.NxC,obj.settings.Nv);
     rho0 = zeros(obj.settings.Nx);
     rho0 = ICrho(obj.settings,obj.x);
-    g0 = ICg(obj.settings,obj.xMid);
+    g0 = ICg(obj.settings,obj.xMid,obj.v);
     return rho0,g0;
  end
+
+# Sn solver for the kinetic equation witout macro-micr decomposition
+function solveSN_kinetic(obj::solver)
+    t = 0.0;
+    dt = obj.settings.dt;
+    Tend = obj.settings.Tend;
+    epsilon = obj.settings.epsilon;
+    Nx = obj.settings.Nx
+    Nv = obj.settings.Nv;
+    epsilon = obj.settings.epsilon;
+    epsilon = 1.0; # This solver is only for the kinetic equation thus we override the externally set epsilon
+
+    Dp = obj.Dp;
+    Dm = obj.Dm;
+    Dc = obj.Dc;
+    Dcx = obj.Dcx;
+
+    w = obj.w;
+    v = obj.v;
+    vp = obj.vp;
+    vm = obj.vm;
+
+    rho0,g0 = setupIC(obj);
+    g = zeros(Float64,Nx,Nv);
+    for i in 1:Nv
+        g[:,i] = rho0;
+    end
+    # println(rho0)
+    ## pre=allocating memory for solution of macro and micro equation
+    # g1 = obj.g1;
+    # rho1 = obj.rho1;
+
+    Nt = round(Tend/dt); # Compute the number of steps
+    dt = Tend/Nt; # Find the step size 
+    
+    unitvec = ones(Nv);
+    Iden = I(Nv);
+
+    for k = ProgressBar(1:Nt)
+      g .= g .- dt.*Dp*g*vp .- dt.*Dm*g*vm .+ dt*obj.sigmaS.*g*(0.5*w*Transpose(unitvec) - Iden) - dt*obj.sigmaA.*g;
+
+      t = t + dt;
+    end
+    return t, g;
+end
 
 #IMEX solver
  function solveFullProblem_Sn(obj::solver)
     t = 0.0;
     dt = obj.settings.dt;
     Tend = obj.settings.Tend;
-    Nx = obj.settings.Nx;
-    NxC = obj.settings.NxC;
     Nv = obj.settings.Nv;
     epsilon = obj.settings.epsilon;
 
@@ -209,18 +277,19 @@ struct solver
     unitvec = ones(Nv);
     Iden = I(Nv);
 
+    fac = 1 + dt*obj.settings.sigmaS/epsilon^2;
+
     println("Running solver for the Sn solver for the full problem")
     
     for k = ProgressBar(1:Nt)
-        fac = epsilon^2/(epsilon^2 + obj.sigmaS*dt);
         RHS = (Dc * rho0 * Transpose(unitvec) * v)/(epsilon^2);
         RHS =  RHS .+ (Dp * g0 * vp + Dm * g0 * vm)*(Iden - 0.5 * w * Transpose(unitvec))/epsilon;
-        RHS = RHS .+ obj.sigmaA .* g0;
+        RHS = RHS .+ obj.sigmaA .* g0 .- Source_macro(obj.settings,t,obj.settings.xMid,obj.v)./epsilon;
         g1 =  g0 .- dt*RHS; 
         
-        g1 =  fac * g1;
+        g1 =  g1./fac;
         
-        rho1 = rho0 - dt *(0.5 * Dcx * g1 * v * w) ;
+        rho1 = rho0 - dt *(0.5 * Dcx * g1 * v * w .- Source_micro(obj.settings,t,obj.settings.x)) ;
 
         rho1[1],rho1[end] = 0,0;
 

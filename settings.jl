@@ -48,11 +48,16 @@ mutable struct Settings
     ## Low-rank approximation parameters
     r::Int; # rank of approximation
 
-    function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic")
+    ## Parameters for setting stencil matrices for spatial derivaties
+    SolverType::Int64;
+
+    SpatDisc::String;
+
+    function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic",SolverType::Int=3)
         # Setup spatial grid
         NxC = Nx - 1;
-        a = -1.5; # Starting point for the spatial interval
-        b = 1.5; # End point for the spatial interval
+        a = -1.0; # Starting point for the spatial interval
+        b = 1.0; # End point for the spatial interval
 
         # Setup temporal discretisation
         Tend = 5;
@@ -63,10 +68,10 @@ mutable struct Settings
         # epsilon = 10^-6;
 
         # Initial conditions
-        ICType = "LS" ;
+        ICType = "MS" ; # Options "LS" or "MS"
 
         # Problem 
-        problem = "LineSource";
+        problem = "ManufacturedSolution"; #Options are "LineSource" or "ManufacturedSolution"
 
         x = collect(range(a,stop = b,length = Nx));
         dx = x[2] - x[1];
@@ -91,13 +96,21 @@ mutable struct Settings
         if problem == "LineSource"
             sigmaS = 1.0;
             sigmaA = 0.0;
+        elseif problem == "ManufacturedSolution"
+            sigmaS = 1.0;
+            sigmaA = 0.0;
         end
 
         BCType = "exact"
 
         r = 30;
 
-        new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r);
+        ## A string variable to describe the type of discretisation used for the spatial derivative
+        # FoUw - First-order Upwind scheme
+        # SoUw - Second-order Upwind scheme
+        SpatDisc = "FoUw";
+
+        new(Nx,NxC,a,b,dx,Tend,dt,cfl1,cfl2,cflType,Nv,x,xMid,problem,epsilon,ICType,BCType,sigmaS,sigmaA,r,SolverType,SpatDisc);
     end
 end
 
@@ -111,18 +124,54 @@ function ICrho(obj::Settings,x)
         for j in eachindex(y)
             y[j] = max(floor,1.0/(sqrt(2*pi)*s1) *exp(-((x[j]-x0)*(x[j]-x0))/2.0/s2));
         end
-    elseif obj.ICType == "ManufacturedSolution"
-        println("Not coded yet")
+    elseif obj.ICType == "MS"
+        for j in eachindex(y)
+            y[j] = sin(pi*x[j]);
+        end
     end
     return y;
 end
 
-function ICg(obj::Settings,x)
+function ICg(obj::Settings,x,v)
     y = zeros(length(x),obj.Nv);
+    m = length(x);
     if obj.ICType == "LS"
         y = y;
-    elseif obj.ICType == "ManufacturedSolution"
-        println("Not coded yet");
+    elseif obj.ICType == "MS"
+        for i = 1:m
+            for j = 1:obj.Nv
+                y[i,j] = v[j,j]*sin(pi*x[i]);
+            end
+        end
     end
+    return y;
+end
+
+function Source_macro(obj::Settings,t,x,v)
+    m = length(x);
+    y = zeros(m,obj.Nv);
+    if obj.ICType == "MS"    
+        for i = 1:m
+            for j = 1:obj.Nv
+                y[i,j] = exp(-t)*sin(pi*x[i])*v[j,j]*(1/obj.epsilon - obj.epsilon) + pi*exp(-t)*cos(pi*x[i])*(v[j,j]/obj.epsilon + v[j,j]^2 - 1/3);
+            end
+        end
+    end
+    return y;
+end
+
+function Source_micro(obj::Settings,t,x)
+    m = length(x);
+    y = zeros(m);
+    if obj.ICType == "MS"
+        for i = 1:m
+            y[i] = exp(-t)*(pi*cos(pi*x[i])/3 - sin(pi*x[i]));
+        end
+    end
+    return y;
+end
+
+function Manufactured1D_rho(obj::Settings,t,x)
+    y = exp(-t)*sin.(pi*x);
     return y;
 end
