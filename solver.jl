@@ -488,9 +488,11 @@ function solveMMDLRA_SnIMEX(obj::solver)
 
     rho0,g0 = setupIC(obj);
 
-    X,s,V = svd(g0);
-    X0 = Matrix(X)[:,1:r];
-    V0 = Matrix(V)[:,1:r];
+    X0,s,V0 = svd(g0);
+    X0 = Matrix(X0);
+    X0 = X0[:,1:r];
+    V0 = Matrix(Transpose(V0));
+    V0 = V0[:,1:r];
     S0 = diagm(s[1:r]);
 
     # println(rho0)
@@ -503,6 +505,9 @@ function solveMMDLRA_SnIMEX(obj::solver)
     
     unitvec = ones(Nv);
     Iden = I(Nv);
+
+    M = zeros(Float64,r,r);
+    N = zeros(Float64,r,r);
 
     Sigma_S = obj.settings.sigmaS.*I(NxC);
     Sigma_A = obj.settings.sigmaA.*I(NxC);
@@ -517,34 +522,37 @@ function solveMMDLRA_SnIMEX(obj::solver)
     for k = ProgressBar(1:Nt)
         # Solving the micro equation in time using DLRA
         K = X0*S0;
-        K .= K .- dt.*(Dp*K*Transpose(V0)*vp .+ Dm*K*Transpose(V0)*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V0./epsilon .- dt.*Dc*rho0*Transpose(unitvec)*v*V0./epsilon^2   .- dt.*Sigma_A*K;
+        K .= K .- dt.*(Dp*K*Transpose(V0)*vp .+ Dm*K*Transpose(V0)*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V0./epsilon .- dt.*Dc*rho0*Transpose(unitvec)*v*V0./epsilon^2 .- dt.*Sigma_A*K;
         K .= FacK*K;
-        X1,R1 = qr(K);
-        X1 = Matrix(X1)[:,1:r];
+        X1,_ = qr(K);
+        X1 = Matrix(X1);
+        X1 = X1[:,1:r];
         M = Transpose(X1)*X0;
         
 
         Lt = S0*Transpose(V0);
-        FacL = inv(I(r) + dt.*Transpose(X0)*Sigma_S*X0./epsilon^2);
+        FacL = (1 + dt*obj.settings.sigmaS/epsilon^2)^-1;
         Lt .= Lt .- dt.*Transpose(X0)*(Dp*X0*Lt*vp .+ Dm*X0*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))./epsilon .- dt.*Transpose(X0)*Dc*rho0*Transpose(unitvec)*v./epsilon^2 .- dt.*Transpose(X0)*Sigma_A*X0*Lt;
         Lt .= FacL*Lt;
-        V1,R2 = qr(Transpose(Lt));
-        V1 = Matrix(V1)[:,1:r];
+        V1,_ = qr(Transpose(Lt));
+        V1 = Matrix(V1);
+        V1 = V1[:,1:r];
         N = Transpose(V1)*V0;
 
-        S0 .= M*S0*Transpose(N);
-        FacS = inv(I(r) + dt.*Transpose(X1)*Sigma_S*X1./epsilon^2);
+        S0 = M*S0*Transpose(N);
+        FacS = (1 + dt*obj.settings.sigmaS/epsilon^2)^-1;
         S1 = S0 .- dt.*Transpose(X1)*(Dp*X1*S0*Transpose(V1)*vp .+ Dm*X1*S0*Transpose(V1)*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V1./epsilon .- dt.*Transpose(X1)*Dc*rho0*Transpose(unitvec)*v*V1./epsilon^2   .- dt.*Transpose(X1)*Sigma_A*X1*S0;
         S1 .= FacS*S1;
         # Solving the macro equation 
 
         rho1 .= rho0 .- 0.5*dt.*Dcx*X1*S1*Transpose(V1)*v*w .- Sigma_AF*rho0;
 
-        X0 .= X1[:,1:r];
-        V0 .= V1[:,1:r];
-        S0 .= S1[1:r,1:r];
+        X0 .= X1;
+        V0 .= V1;
+        S0 .= S1;
         rho0 = rho1;
         t = t + dt;
+        global X1,S1,V1;
     end
     return t, rho1, X1*S1*Transpose(V1);
 end
