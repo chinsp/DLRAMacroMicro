@@ -556,3 +556,52 @@ function solveMMDLRA_SnIMEX(obj::solver)
     end
     return t, rho1, X1*S1*Transpose(V1);
 end
+
+function solveMMDLRA_Pn(obj::solver)
+    t = 0.0;
+    dt = obj.settings.dt;
+    Tend = obj.settings.Tend;
+    # Nx = obj.settings.Nx;
+    # NxC = obj.settings.NxC;
+    # Nv = obj.settings.Nv;
+    epsilon = obj.settings.epsilon;
+
+    A = obj.A;
+    absA = obj.absA;
+    Abar = obj.Abar;
+
+    Dx = obj.Dx;
+    Dxx = obj.Dxx;
+    Dc = obj.Dc;
+    Dcx = obj.Dcx;
+
+    rho0,g0 = setupIC(obj);
+    # println(rho0)
+    ## pre=allocating memory for solution of macro and micro equation
+    g1 = obj.g1;
+    rho1 = obj.rho1;
+
+    Nt = round(Tend/dt); # Computing the number of steps required 
+    dt = Tend/Nt; # Adjusting the step size 
+
+    fac = 1 + obj.settings.sigmaS*dt/epsilon^2;
+
+    println("Running solver for the Pn solver for the full problem")
+
+    for k = ProgressBar(1:Nt)
+        g1 .= g0 + dt.*(-Dx*g0*Transpose(A)./epsilon + Dxx*g0*Transpose(absA)./epsilon - Dc*rho0*Transpose(Abar)./epsilon^2 - obj.settings.sigmaA*g0);
+        g1 .= g1./fac;
+
+        rho1 .= rho0 + dt.*(-0.5*Dcx*g1*Abar - obj.settings.sigmaA*rho0);
+
+        rho0 .= rho1;
+        g0 .= g1;
+        
+        # rho1[1] = rho1[end-1]; rho1[end] = rho1[2];
+        # g1[1,:] = g1[end-1,:]; g1[end,:] = g1[2,:];
+
+        t = t+dt;
+    end
+    return t,rho1,g1;
+
+end
