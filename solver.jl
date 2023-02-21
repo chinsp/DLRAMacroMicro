@@ -525,7 +525,7 @@ function solveMMDLRA_SnIMEX(obj::solver)
         X .= X1;
 
         Lt = S*Transpose(V);
-        FacL = inv(I(NxC) + dt.*Transpose(X)*Sigma_S*X./epsilon^2);
+        FacL = inv(I(r) + dt.*Transpose(X)*Sigma_S*X./epsilon^2);
         Lt .= Lt .- dt.*Transpose(X)*(Dp*X*Lt*vp .+ Dm*X*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))./epsilon .- dt.*Transpose(X)*Dc*rho0*Transpose(unitvec)*v./epsilon^2 .- dt.*Transpose(X)*Sigma_A*X*Lt;
         Lt .= FacL*Lt;
         V1,R2 = qr(Transpose(Lt));
@@ -534,7 +534,7 @@ function solveMMDLRA_SnIMEX(obj::solver)
         V .= V1;
 
         S .= M*S*Transpose(N);
-        FacS = inv(I(NxC) + dt.*Transpose(X)*Sigma_S*X./epsilon^2);
+        FacS = inv(I(r) + dt.*Transpose(X)*Sigma_S*X./epsilon^2);
         S .= S .- dt.*Transpose(X)*(Dp*X*Lt*vp .+ Dm*X*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V./epsilon .- dt.*Transpose(X)*Dc*rho0*Transpose(unitvec)*v*V./epsilon^2   .- dt.*Transpose(X)*Sigma_A*X*S;
         S .= FacS*S;
         # Solving the macro equation 
