@@ -34,7 +34,7 @@ Solver = solver(s);
 
 SolverType = 1; 
 
-s1 = Settings(1001,20,1.0,"hyperbolic",SolverType);
+s1 = Settings(1001,200,1.0,"hyperbolic",SolverType);
 s1.Tend = 1.0;
 Solver = solver(s1);
 # @time t, rho1, g1 = solveMMDLRA_SnIMEX(Solver);
