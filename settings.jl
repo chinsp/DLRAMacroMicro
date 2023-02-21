@@ -103,7 +103,7 @@ mutable struct Settings
 
         BCType = "exact"
 
-        r = 30;
+        r = 20;
 
         ## A string variable to describe the type of discretisation used for the spatial derivative
         # FoUw - First-order Upwind scheme
