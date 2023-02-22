@@ -588,8 +588,6 @@ function solveMMDLRA_Pn(obj::solver)
 
     # println(rho0)
     ## pre=allocating memory for solution of macro and micro equation
-    g1 = obj.g1;
-    rho1 = obj.rho1;
 
     Nt = round(Tend/dt); # Computing the number of steps required 
     dt = Tend/Nt; # Adjusting the step size 
@@ -603,7 +601,7 @@ function solveMMDLRA_Pn(obj::solver)
     Sigma_A = obj.settings.sigmaA.*I(NxC);
     Sigma_AF = obj.settings.sigmaA.*I(Nx);
 
-    println("Running DLRA solver for the Pn problem with UI w/o IMEX")
+    println("Running DLRA solver for the Pn problem with UI w/o IMEX with rank ",r)
 
     for k = ProgressBar(1:Nt)
         ## Solving the micro equation in time using DLRA
@@ -636,13 +634,13 @@ function solveMMDLRA_Pn(obj::solver)
         S0 .= S0 .- dt.*XDxX*S0*VAV./epsilon .+ dt.*XDxxX*S0*VabsAV./epsilon .- dt.*Transpose(X1)*Dc*rho0*Transpose(Abar)*V1./(epsilon^2) .- dt.*XSigSX*S0./(epsilon^2) .- dt.*XSigAX*S0;
 
         # Solving the macro equation 
-        rho1 .= rho0 + dt.*(-0.5*Dcx*X1*S0*Transpose(V1)*Abar - obj.settings.sigmaA*rho0);
+        rho0 .= rho0 + dt.*(-0.5*Dcx*X1*S0*Transpose(V1)*Abar - obj.settings.sigmaA*rho0);
 
-        rho0 .= rho1;
         X0 .= X1;
         V0 .= V1;
         t = t+dt;
+
     end
-    return t,rho1,g1;
+    return t,rho0,X0*S0*Transpose(V0);
 
 end
