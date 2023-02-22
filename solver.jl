@@ -603,7 +603,7 @@ function solveMMDLRA_Pn(obj::solver)
     Sigma_A = obj.settings.sigmaA.*I(NxC);
     Sigma_AF = obj.settings.sigmaA.*I(Nx);
 
-    println("Running solver for the Pn solver for the full problem")
+    println("Running DLRA solver for the Pn problem with UI w/o IMEX")
 
     for k = ProgressBar(1:Nt)
         ## Solving the micro equation in time using DLRA
