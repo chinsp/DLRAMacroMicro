@@ -498,8 +498,6 @@ function solveMMDLRA_SnIMEX(obj::solver)
 
     # println(rho0)
     ## pre=allocating memory for solution of macro and micro equation
-    g1 = obj.g1;
-    rho1 = obj.rho1;
 
     Nt = round(Tend/dt); # Compute the number of steps
     dt = Tend/Nt; # Find the step size 
@@ -509,6 +507,8 @@ function solveMMDLRA_SnIMEX(obj::solver)
 
     M = zeros(Float64,r,r);
     N = zeros(Float64,r,r);
+    K = zeros(Float64,size(X0));
+    Lt = zeros(Float64,size(Transpose(V0)));
 
     Sigma_S = obj.settings.sigmaS.*I(NxC);
     Sigma_A = obj.settings.sigmaA.*I(NxC);
@@ -521,40 +521,38 @@ function solveMMDLRA_SnIMEX(obj::solver)
     for k = ProgressBar(1:Nt)
         ## Solving the micro equation in time using DLRA
         # K-step
-        K = X0*S0;
+        K .= X0*S0;
         K .= K .- dt.*(Dp*K*Transpose(V0)*vp .+ Dm*K*Transpose(V0)*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V0./epsilon .- dt.*Dc*rho0*Transpose(unitvec)*v*V0./epsilon^2 .- dt.*Sigma_A*K;
         K .= FacK*K;
         X1,_ = qr(K);
         X1 = Matrix(X1);
         X1 = X1[:,1:r];
-        M = Transpose(X1)*X0;
+        M .= Transpose(X1)*X0;
         
         # L-step
-        Lt = S0*Transpose(V0);
+        Lt .= S0*Transpose(V0);
         FacL = (1 + dt*obj.settings.sigmaS/epsilon^2)^-1;
         Lt .= Lt .- dt.*Transpose(X0)*(Dp*X0*Lt*vp .+ Dm*X0*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))./epsilon .- dt.*Transpose(X0)*Dc*rho0*Transpose(unitvec)*v./epsilon^2 .- dt.*Transpose(X0)*Sigma_A*X0*Lt;
         Lt .= FacL*Lt;
         V1,_ = qr(Transpose(Lt));
         V1 = Matrix(V1);
         V1 = V1[:,1:r];
-        N = Transpose(V1)*V0;
+        N .= Transpose(V1)*V0;
 
         #S-step
         S0 = M*S0*Transpose(N);
         FacS = (1 + dt*obj.settings.sigmaS/epsilon^2)^-1;
-        S1 = S0 .- dt.*Transpose(X1)*(Dp*X1*S0*Transpose(V1)*vp .+ Dm*X1*S0*Transpose(V1)*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V1./epsilon .- dt.*Transpose(X1)*Dc*rho0*Transpose(unitvec)*v*V1./epsilon^2   .- dt.*Transpose(X1)*Sigma_A*X1*S0;
-        S1 .= FacS*S1;
+        S0 = S0 .- dt.*Transpose(X1)*(Dp*X1*S0*Transpose(V1)*vp .+ Dm*X1*S0*Transpose(V1)*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V1./epsilon .- dt.*Transpose(X1)*Dc*rho0*Transpose(unitvec)*v*V1./epsilon^2   .- dt.*Transpose(X1)*Sigma_A*X1*S0;
+        S0 .= FacS*S0;
         
         # Solving the macro equation 
-        rho1 .= rho0 .- 0.5*dt.*Dcx*X1*S1*Transpose(V1)*v*w .- Sigma_AF*rho0;
+        rho0 .= rho0 .- 0.5*dt.*Dcx*X1*S0*Transpose(V1)*v*w .- Sigma_AF*rho0;
 
         X0 .= X1;
         V0 .= V1;
-        S0 .= S1;
-        rho0 = rho1;
         t = t + dt;
     end
-    return t, rho1, X0*S0*Transpose(V0);
+    return t, rho0, X0*S0*Transpose(V0);
 end
 
 function solveMMDLRA_Pn(obj::solver)
