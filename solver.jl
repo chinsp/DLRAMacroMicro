@@ -553,9 +553,8 @@ function solveMMDLRA_SnIMEX(obj::solver)
         S0 .= S1;
         rho0 = rho1;
         t = t + dt;
-        global X1,S1,V1;
     end
-    return t, rho1, X1*S1*Transpose(V1);
+    return t, rho1, X0*S0*Transpose(V0);
 end
 
 function solveMMDLRA_Pn(obj::solver)
