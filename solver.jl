@@ -633,10 +633,10 @@ function solveMMDLRA_Pn(obj::solver)
         XSigAX = Transpose(X1)*Sigma_A*X1;
         VAV = Transpose(V1)*Transpose(A)*V1;
         VabsAV = Transpose(V1)*Transpose(absA)*V1;
-        S0 .= S0 .- dt.*XDxX*S0*VAV./epsilon .+ dt.*XDxxX*S0*VabsAV./epsilon .- dt.*Transpose(X1)*Dc*rho0*Transpose(Abar)*V./(epsilon^2) .- dt.*XSigSX*S0./(epsilon^2) .- dt.*XSigAX*S0;
+        S0 .= S0 .- dt.*XDxX*S0*VAV./epsilon .+ dt.*XDxxX*S0*VabsAV./epsilon .- dt.*Transpose(X1)*Dc*rho0*Transpose(Abar)*V1./(epsilon^2) .- dt.*XSigSX*S0./(epsilon^2) .- dt.*XSigAX*S0;
 
         # Solving the macro equation 
-        rho1 .= rho0 .- 0.5*dt.*Dcx*X1*S0*Transpose(V1)*v*w .- Sigma_AF*rho0;
+        rho1 .= rho0 + dt.*(-0.5*Dcx*X1*S0*Transpose(V1)*Abar - obj.settings.sigmaA*rho0);
 
         rho0 .= rho1;
         X0 .= X1;
