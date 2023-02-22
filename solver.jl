@@ -514,14 +514,13 @@ function solveMMDLRA_SnIMEX(obj::solver)
     Sigma_A = obj.settings.sigmaA.*I(NxC);
     Sigma_AF = obj.settings.sigmaA.*I(Nx);
 
-    fac = 1 + dt*obj.settings.sigmaS/epsilon^2;
-
     FacK = inv(I(NxC) + dt.*Sigma_S./epsilon^2);
 
     println("Running IMEX DLRA solver for the Sn problem using UI with rank ",r)
 
     for k = ProgressBar(1:Nt)
-        # Solving the micro equation in time using DLRA
+        ## Solving the micro equation in time using DLRA
+        # K-step
         K = X0*S0;
         K .= K .- dt.*(Dp*K*Transpose(V0)*vp .+ Dm*K*Transpose(V0)*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V0./epsilon .- dt.*Dc*rho0*Transpose(unitvec)*v*V0./epsilon^2 .- dt.*Sigma_A*K;
         K .= FacK*K;
@@ -530,7 +529,7 @@ function solveMMDLRA_SnIMEX(obj::solver)
         X1 = X1[:,1:r];
         M = Transpose(X1)*X0;
         
-
+        # L-step
         Lt = S0*Transpose(V0);
         FacL = (1 + dt*obj.settings.sigmaS/epsilon^2)^-1;
         Lt .= Lt .- dt.*Transpose(X0)*(Dp*X0*Lt*vp .+ Dm*X0*Lt*vm)*(Iden - 0.5.*w*Transpose(unitvec))./epsilon .- dt.*Transpose(X0)*Dc*rho0*Transpose(unitvec)*v./epsilon^2 .- dt.*Transpose(X0)*Sigma_A*X0*Lt;
@@ -540,12 +539,13 @@ function solveMMDLRA_SnIMEX(obj::solver)
         V1 = V1[:,1:r];
         N = Transpose(V1)*V0;
 
+        #S-step
         S0 = M*S0*Transpose(N);
         FacS = (1 + dt*obj.settings.sigmaS/epsilon^2)^-1;
         S1 = S0 .- dt.*Transpose(X1)*(Dp*X1*S0*Transpose(V1)*vp .+ Dm*X1*S0*Transpose(V1)*vm)*(Iden - 0.5.*w*Transpose(unitvec))*V1./epsilon .- dt.*Transpose(X1)*Dc*rho0*Transpose(unitvec)*v*V1./epsilon^2   .- dt.*Transpose(X1)*Sigma_A*X1*S0;
         S1 .= FacS*S1;
+        
         # Solving the macro equation 
-
         rho1 .= rho0 .- 0.5*dt.*Dcx*X1*S1*Transpose(V1)*v*w .- Sigma_AF*rho0;
 
         X0 .= X1;
@@ -562,10 +562,11 @@ function solveMMDLRA_Pn(obj::solver)
     t = 0.0;
     dt = obj.settings.dt;
     Tend = obj.settings.Tend;
-    # Nx = obj.settings.Nx;
-    # NxC = obj.settings.NxC;
-    # Nv = obj.settings.Nv;
+    Nx = obj.settings.Nx;
+    NxC = obj.settings.NxC;
+    Nv = obj.settings.Nv;
     epsilon = obj.settings.epsilon;
+    r = obj.settings.r;
 
     A = obj.A;
     absA = obj.absA;
@@ -577,6 +578,14 @@ function solveMMDLRA_Pn(obj::solver)
     Dcx = obj.Dcx;
 
     rho0,g0 = setupIC(obj);
+
+    X0,s,V0 = svd(g0);
+    X0 = Matrix(X0);
+    X0 = X0[:,1:r];
+    V0 = Matrix(Transpose(V0));
+    V0 = V0[:,1:r];
+    S0 = diagm(s[1:r]);
+
     # println(rho0)
     ## pre=allocating memory for solution of macro and micro equation
     g1 = obj.g1;
@@ -585,21 +594,26 @@ function solveMMDLRA_Pn(obj::solver)
     Nt = round(Tend/dt); # Computing the number of steps required 
     dt = Tend/Nt; # Adjusting the step size 
 
-    fac = 1 + obj.settings.sigmaS*dt/epsilon^2;
+    M = zeros(Float64,r,r);
+    N = zeros(Float64,r,r);
+    K = zeros(Float64,size(X0));
+    L = zeros(Float64,size(V0));
+
+    Sigma_S = obj.settings.sigmaS.*I(NxC);
+    Sigma_A = obj.settings.sigmaA.*I(NxC);
+    Sigma_AF = obj.settings.sigmaA.*I(Nx);
 
     println("Running solver for the Pn solver for the full problem")
 
     for k = ProgressBar(1:Nt)
-        g1 .= g0 + dt.*(-Dx*g0*Transpose(A)./epsilon + Dxx*g0*Transpose(absA)./epsilon - Dc*rho0*Transpose(Abar)./epsilon^2 - obj.settings.sigmaA*g0);
-        g1 .= g1./fac;
+        K .= X0*S0;
+        K .= K .- dt.*Dx*K*Transpose(V)*Transpose(A)*V./epsilon .+ dt.*Dxx*K*Transpose(V)*Transpose(absA)*V./epsilon .- dt.*Dc*rho0*Transpose(Abar)*V./epsilon .- dt.*Sigma_S*K .- dt.*Sigma_A*K;
+        X1,_ = qr(K);
+        X1 = Matrix(X1);
+        X1 = X1[:,1:r];
+        M = Transpose(X1)*X0;
 
-        rho1 .= rho0 + dt.*(-0.5*Dcx*g1*Abar - obj.settings.sigmaA*rho0);
 
-        rho0 .= rho1;
-        g0 .= g1;
-        
-        # rho1[1] = rho1[end-1]; rho1[end] = rho1[2];
-        # g1[1,:] = g1[end-1,:]; g1[end,:] = g1[2,:];
 
         t = t+dt;
     end
