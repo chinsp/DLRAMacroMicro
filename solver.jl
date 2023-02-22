@@ -597,7 +597,7 @@ function solveMMDLRA_Pn(obj::solver)
     M = zeros(Float64,r,r);
     N = zeros(Float64,r,r);
     K = zeros(Float64,size(X0));
-    Lt = zeros(Float64,size(V0));
+    Lt = zeros(Float64,r,Nv);
 
     Sigma_S = obj.settings.sigmaS.*I(NxC);
     Sigma_A = obj.settings.sigmaA.*I(NxC);
