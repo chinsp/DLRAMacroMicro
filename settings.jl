@@ -56,8 +56,8 @@ mutable struct Settings
     function Settings(Nx::Int=1001,Nv::Int=500,epsilon::Float64=1.0,cflType::String="hyperbolic",SolverType::Int=3)
         # Setup spatial grid
         NxC = Nx - 1;
-        a = -1.0; # Starting point for the spatial interval
-        b = 1.0; # End point for the spatial interval
+        a = -1.5; # Starting point for the spatial interval
+        b = 1.5; # End point for the spatial interval
 
         # Setup temporal discretisation
         Tend = 5;
@@ -68,10 +68,10 @@ mutable struct Settings
         # epsilon = 10^-6;
 
         # Initial conditions
-        ICType = "MS" ; # Options "LS" or "MS"
+        ICType = "LS" ; # Options "LS" or "MS"
 
         # Problem 
-        problem = "ManufacturedSolution"; #Options are "LineSource" or "ManufacturedSolution"
+        problem = "LineSource"; #Options are "LineSource" or "ManufacturedSolution"
 
         x = collect(range(a,stop = b,length = Nx));
         dx = x[2] - x[1];
@@ -103,7 +103,7 @@ mutable struct Settings
 
         BCType = "exact"
 
-        r = 30;
+        r = 40;
 
         ## A string variable to describe the type of discretisation used for the spatial derivative
         # FoUw - First-order Upwind scheme
