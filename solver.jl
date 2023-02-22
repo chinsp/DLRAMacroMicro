@@ -597,7 +597,7 @@ function solveMMDLRA_Pn(obj::solver)
     M = zeros(Float64,r,r);
     N = zeros(Float64,r,r);
     K = zeros(Float64,size(X0));
-    L = zeros(Float64,size(V0));
+    Lt = zeros(Float64,size(V0));
 
     Sigma_S = obj.settings.sigmaS.*I(NxC);
     Sigma_A = obj.settings.sigmaA.*I(NxC);
@@ -606,15 +606,41 @@ function solveMMDLRA_Pn(obj::solver)
     println("Running solver for the Pn solver for the full problem")
 
     for k = ProgressBar(1:Nt)
+        ## Solving the micro equation in time using DLRA
+        # K-step
         K .= X0*S0;
-        K .= K .- dt.*Dx*K*Transpose(V)*Transpose(A)*V./epsilon .+ dt.*Dxx*K*Transpose(V)*Transpose(absA)*V./epsilon .- dt.*Dc*rho0*Transpose(Abar)*V./epsilon .- dt.*Sigma_S*K .- dt.*Sigma_A*K;
+        K .= K .- dt.*Dx*K*Transpose(V0)*Transpose(A)*V0./epsilon .+ dt.*Dxx*K*Transpose(V0)*Transpose(absA)*V0./epsilon .- dt.*Dc*rho0*Transpose(Abar)*V0./(epsilon^2) .- dt.*Sigma_S*K./(epsilon^2) .- dt.*Sigma_A*K;
         X1,_ = qr(K);
         X1 = Matrix(X1);
         X1 = X1[:,1:r];
         M = Transpose(X1)*X0;
 
+        Lt .= S0*Transpose(V0);
+        XDxX = Transpose(X0)*Dx*X0;
+        XDxxX = Transpose(X0)*Dxx*X0;
+        XSigSX = Transpose(X0)*Sigma_S*X0;
+        XSigAX = Transpose(X0)*Sigma_A*X0;
+        Lt .= Lt .- dt.*XDxX*Lt*Transpose(A)./epsilon .+ dt.*XDxxX*Lt*Transpose(absA)./epsilon .- dt.*Transpose(X0)*Dc*rho0*Transpose(Abar)./epsilon^2 .- dt.*XSigSX*Lt./(epsilon^2) .- dt.*XSigAX*Lt;
+        V1,_ = qr(Transpose(Lt));
+        V1 = Matrix(V1);
+        V1 = V1[:,1:r];
+        N = Transpose(V1)*V0;
 
+        S0 .= M*S0*Transpose(N);
+        XDxX = Transpose(X1)*Dx*X1;
+        XDxxX = Transpose(X1)*Dxx*X1;
+        XSigSX = Transpose(X1)*Sigma_S*X1;
+        XSigAX = Transpose(X1)*Sigma_A*X1;
+        VAV = Transpose(V1)*Transpose(A)*V1;
+        VabsAV = Transpose(V1)*Transpose(absA)*V1;
+        S0 .= S0 .- dt.*XDxX*S0*VAV./epsilon .+ dt.*XDxxX*S0*VabsAV./epsilon .- dt.*Transpose(X1)*Dc*rho0*Transpose(Abar)*V./(epsilon^2) .- dt.*XSigSX*S0./(epsilon^2) .- dt.*XSigAX*S0;
 
+        # Solving the macro equation 
+        rho1 .= rho0 .- 0.5*dt.*Dcx*X1*S0*Transpose(V1)*v*w .- Sigma_AF*rho0;
+
+        rho0 .= rho1;
+        X0 .= X1;
+        V0 .= V1;
         t = t+dt;
     end
     return t,rho1,g1;
